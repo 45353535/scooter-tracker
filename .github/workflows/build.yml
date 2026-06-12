@@ -27,29 +27,11 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Check SDK
-        run: |
-          echo "ANDROID_HOME=$ANDROID_HOME" | tee /tmp/env.txt
-          ls -la $ANDROID_HOME/platforms/ 2>&1 | tee -a /tmp/env.txt
-          ls -la $ANDROID_HOME/build-tools/ 2>&1 | tee -a /tmp/env.txt
-          echo "JAVA_HOME=$JAVA_HOME" | tee -a /tmp/env.txt
-          java -version 2>&1 | tee -a /tmp/env.txt
-
       - name: Build APK
-        id: build
-        run: |
-          # Save full output
-          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
-          exit ${PIPESTATUS[0]}
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Show error on fail
-        if: failure()
-        run: |
-          echo "::warning::=== What went wrong ==="
-          grep -A5 "FAILED\|What went wrong\|Caused by\|BUILD FAILED" /tmp/build.log 2>/dev/null | head -30 | while IFS= read -r line; do
-            echo "::warning::$line"
-          done
-          echo "::warning::=== Last 15 lines ==="
-          tail -15 /tmp/build.log 2>/dev/null | while IFS= read -r line; do
-            echo "::warning::$line"
-          done
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: scooter-tracker-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
