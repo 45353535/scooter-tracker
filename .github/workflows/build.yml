@@ -29,18 +29,32 @@ jobs:
           curl -sL https://services.gradle.org/distributions/gradle-8.5-bin.zip -o /tmp/gradle.zip
           unzip -q /tmp/gradle.zip -d /tmp/gradle-install
           echo "/tmp/gradle-install/gradle-8.5/bin" >> $GITHUB_PATH
-          gradle --version
-
-      - name: Generate wrapper
-        run: |
-          gradle wrapper --gradle-version 8.5
-          ls -la gradlew gradle/wrapper/
+          echo "GRADLE_HOME=/tmp/gradle-install/gradle-8.5" >> $GITHUB_ENV
 
       - name: Build APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        continue-on-error: true
+        run: |
+          gradle --version
+          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
+
+      - name: Upload debug log
+        if: always()
+        run: |
+          echo "=== PATH ===" > /tmp/debug.txt
+          echo "$PATH" >> /tmp/debug.txt
+          echo "=== JAVA ===" >> /tmp/debug.txt
+          java -version 2>&1 >> /tmp/debug.txt
+          echo "=== ANDROID_HOME ===" >> /tmp/debug.txt
+          ls -la $ANDROID_HOME 2>&1 >> /tmp/debug.txt
+          echo "=== SDK ===" >> /tmp/debug.txt
+          ls -la $ANDROID_HOME/platforms/ 2>&1 >> /tmp/debug.txt
+          echo "=== local.properties ===" >> /tmp/debug.txt
+          cat local.properties >> /tmp/debug.txt
+          echo "=== build.log ===" >> /tmp/debug.txt
+          cat /tmp/build.log >> /tmp/debug.txt 2>&1 || echo "no build log" >> /tmp/debug.txt
 
       - uses: actions/upload-artifact@v4
-        if: success()
+        if: always()
         with:
-          name: scooter-tracker-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: debug-output
+          path: /tmp/debug.txt
