@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Scooter Tracker</string>
+    <string name="channel_name">Трекинг скутера</string>
+    <string name="channel_description">Уведомление о активном трекинге</string>
+    <string name="tracking_active">Трекинг активен</string>
+    <string name="start">Старт</string>
+    <string name="stop">Стоп</string>
+    <string name="distance">Расстояние</string>
+    <string name="speed">Скорость</string>
+    <string name="threshold">Порог скорости</string>
+    <string name="km_h">км/ч</string>
+    <string name="km">км</string>
+    <string name="m">м</string>
+</resources>
