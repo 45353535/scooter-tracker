@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,7 +53,7 @@ class MainActivity : ComponentActivity() {
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { _ ->
-        _serviceFlow.value?.retryGnssIfNeeded()
+        _serviceFlow.value?.retryGpsIfNeeded()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,6 +95,7 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         Intent(this, TrackingService::class.java).also { intent ->
+            ContextCompat.startForegroundService(this, intent)
             bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
     }
@@ -192,20 +194,20 @@ fun MainScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Canvas(modifier = Modifier.size(10.dp)) {
-                    drawCircle(
-                        color = if (hasGpsFix && satelliteCount > 0) DistanceColor
-                                else if (satelliteCount > 0) WarnColor
-                                else Color(0xFF555555)
-                    )
-                }
+                val gpsTint = if (hasGpsFix && satelliteCount > 0) DistanceColor
+                              else if (satelliteCount > 0) WarnColor
+                              else Color(0xFF555555)
+                Icon(
+                    painter = painterResource(com.scootertracker.R.drawable.ic_gps),
+                    contentDescription = null,
+                    tint = gpsTint,
+                    modifier = Modifier.size(16.dp)
+                )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     "$satelliteCount спутников",
                     fontSize = 13.sp,
-                    color = if (hasGpsFix) DistanceColor
-                            else if (satelliteCount > 0) WarnColor
-                            else TextSecondary
+                    color = gpsTint
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(

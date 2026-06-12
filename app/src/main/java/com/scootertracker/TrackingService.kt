@@ -63,11 +63,15 @@ class TrackingService : Service() {
         totalDistanceMeters = prefs.getFloat(PREFS_DISTANCE, 0f)
         _distanceKm.value = (totalDistanceMeters / 1000f * 100).roundToInt() / 100f
         createNotificationChannel()
-        startGnss()
+        startGpsAndGnss()
+        try {
+            startForeground(NOTIFICATION_ID, createNotification())
+        } catch (_: Exception) {
+        }
     }
 
     override fun onDestroy() {
-        stopGnss()
+        stopGpsAndGnss()
         saveDistance()
         super.onDestroy()
     }
@@ -78,16 +82,19 @@ class TrackingService : Service() {
                 intent.getFloatExtra(EXTRA_THRESHOLD, speedThresholdKmh).let {
                     speedThresholdKmh = it
                 }
-                start()
+                _isTracking.value = true
+                startForeground(NOTIFICATION_ID, createNotification())
             }
-            ACTION_STOP -> stop()
-            ACTION_EXIT -> {
-                if (_isTracking.value) {
-                    _isTracking.value = false
-                    _speedKmh.value = 0f
-                    stopGps()
-                }
+            ACTION_STOP -> {
+                _isTracking.value = false
+                _speedKmh.value = 0f
                 saveDistance()
+                startForeground(NOTIFICATION_ID, createNotification())
+            }
+            ACTION_EXIT -> {
+                _isTracking.value = false
+                saveDistance()
+                stopGpsAndGnss()
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
@@ -98,18 +105,6 @@ class TrackingService : Service() {
         return START_STICKY
     }
 
-    private fun start() {
-        if (_isTracking.value) return
-        _isTracking.value = true
-        try {
-            startForeground(NOTIFICATION_ID, createNotification())
-            startGps()
-        } catch (e: Exception) {
-            _isTracking.value = false
-            stopSelf()
-        }
-    }
-
     fun resetDistance() {
         totalDistanceMeters = 0f
         _distanceKm.value = 0f
@@ -118,88 +113,75 @@ class TrackingService : Service() {
         updateNotification()
     }
 
-    private fun stop() {
-        if (!_isTracking.value) return
-        _isTracking.value = false
-        _speedKmh.value = 0f
-        saveDistance()
-        stopGps()
-        startForeground(NOTIFICATION_ID, createNotification())
+    fun retryGpsIfNeeded() {
+        startGpsAndGnss()
     }
 
     private fun saveDistance() {
         prefs.edit().putFloat(PREFS_DISTANCE, totalDistanceMeters).apply()
     }
 
-    private fun startGps() {
-        val gpsListener = LocationListener { location ->
-            processLocation(location)
-        }
-        this.gpsListener = gpsListener
+    private fun startGpsAndGnss() {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) return
 
-        val netListener = LocationListener { location ->
-            if (lastLocation == null) processLocation(location)
+        if (gnssCallback == null) {
+            gnssCallback = object : GnssStatus.Callback() {
+                override fun onSatelliteStatusChanged(status: GnssStatus) {
+                    var used = 0
+                    for (i in 0 until status.satelliteCount) {
+                        if (status.usedInFix(i)) used++
+                    }
+                    _satelliteCount.value = status.satelliteCount
+                    _hasGpsFix.value = used > 0
+                }
+                override fun onStarted() {}
+                override fun onStopped() {}
+                override fun onFirstFix(ttffMillis: Int) {}
+            }
+            try {
+                locationManager.registerGnssStatusCallback(gnssCallback!!, Handler(Looper.getMainLooper()))
+            } catch (_: SecurityException) {
+                gnssCallback = null
+                return
+            }
         }
-        this.netListener = netListener
 
-        try {
-            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER, 1000L, 0f, gpsListener, Looper.getMainLooper()
-                )
+        if (gpsListener == null) {
+            gpsListener = LocationListener { location -> processLocation(location) }
+            try {
+                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    locationManager.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER, 1000L, 0f, gpsListener!!, Looper.getMainLooper()
+                    )
+                }
+            } catch (_: SecurityException) {
+                gpsListener = null
             }
-            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER, 3000L, 0f, netListener, Looper.getMainLooper()
-                )
+        }
+
+        if (netListener == null) {
+            netListener = LocationListener { location ->
+                if (lastLocation == null) processLocation(location)
             }
-        } catch (e: SecurityException) {
-            _isTracking.value = false
+            try {
+                if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                    locationManager.requestLocationUpdates(
+                        LocationManager.NETWORK_PROVIDER, 3000L, 0f, netListener!!, Looper.getMainLooper()
+                    )
+                }
+            } catch (_: SecurityException) {
+                netListener = null
+            }
         }
     }
 
-    private fun stopGps() {
+    private fun stopGpsAndGnss() {
         gpsListener?.let { locationManager.removeUpdates(it) }
         netListener?.let { locationManager.removeUpdates(it) }
         gpsListener = null
         netListener = null
-    }
-
-    private fun startGnss() {
-        if (gnssCallback != null && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-            == PackageManager.PERMISSION_GRANTED
-        ) return
-        gnssCallback = object : GnssStatus.Callback() {
-            override fun onSatelliteStatusChanged(status: GnssStatus) {
-                var used = 0
-                for (i in 0 until status.satelliteCount) {
-                    if (status.usedInFix(i)) used++
-                }
-                _satelliteCount.value = status.satelliteCount
-                _hasGpsFix.value = used > 0
-            }
-            override fun onStarted() {}
-            override fun onStopped() {}
-            override fun onFirstFix(ttffMillis: Int) {}
-        }
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            gnssCallback = null
-            return
-        }
-        try {
-            locationManager.registerGnssStatusCallback(gnssCallback!!, Handler(Looper.getMainLooper()))
-        } catch (_: SecurityException) {
-            gnssCallback = null
-        }
-    }
-
-    fun retryGnssIfNeeded() {
-        startGnss()
-    }
-
-    private fun stopGnss() {
         gnssCallback?.let { locationManager.unregisterGnssStatusCallback(it) }
         gnssCallback = null
         _satelliteCount.value = 0
@@ -210,7 +192,7 @@ class TrackingService : Service() {
         val speedKm = calculateSpeedKmh(location)
         _speedKmh.value = (speedKm * 10).roundToInt() / 10f
 
-        if (speedKm >= speedThresholdKmh) {
+        if (_isTracking.value && speedKm >= speedThresholdKmh) {
             lastLocation?.let { last ->
                 val delta = last.distanceTo(location)
                 if (delta > MIN_DELTA_METERS) {
