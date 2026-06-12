@@ -24,27 +24,11 @@ jobs:
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
-      - name: Generate Gradle wrapper
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq gradle
-          gradle wrapper --gradle-version 8.5
+      - name: Make gradlew executable
+        run: chmod +x gradlew
 
       - name: Build APK
-        id: build
-        shell: bash
-        run: |
-          set -o pipefail
-          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
-
-      - name: Upload debug
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh issue create \
-            --title "Build log $(date)" \
-            --body "$(cat /tmp/build.log)"
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         if: success()
