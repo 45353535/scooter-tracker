@@ -156,7 +156,9 @@ class TrackingService : Service() {
     }
 
     private fun startGnss() {
-        if (gnssCallback != null) return
+        if (gnssCallback != null && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED
+        ) return
         gnssCallback = object : GnssStatus.Callback() {
             override fun onSatelliteStatusChanged(status: GnssStatus) {
                 var used = 0
@@ -172,10 +174,14 @@ class TrackingService : Service() {
         }
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
-        ) return
+        ) {
+            gnssCallback = null
+            return
+        }
         try {
             locationManager.registerGnssStatusCallback(gnssCallback!!, Handler(Looper.getMainLooper()))
         } catch (_: SecurityException) {
+            gnssCallback = null
         }
     }
 
