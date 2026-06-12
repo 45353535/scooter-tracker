@@ -18,36 +18,35 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
-      - name: Accept licenses & install SDK
+      - name: Setup SDK
+        shell: bash
         run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0" --sdk_root=$ANDROID_HOME
+          SDK=$ANDROID_HOME
+          yes | $SDK/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+          $SDK/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" --sdk_root=$SDK > /dev/null 2>&1 || true
 
       - name: Write local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
-      - name: Install Gradle
-        run: |
-          wget -q https://services.gradle.org/distributions/gradle-8.5-bin.zip
-          unzip -q gradle-8.5-bin.zip
-          echo "$PWD/gradle-8.5/bin" >> $GITHUB_PATH
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: "8.5"
 
-      - name: Build
+      - name: Build APK
+        id: build
         shell: bash
         run: |
-          set -o pipefail
-          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee gradle.log
-
-      - name: Upload build log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradle-log
-          path: gradle.log
+          echo "pwd: $(pwd)" >> $GITHUB_STEP_SUMMARY
+          echo "ls: $(ls -la)" >> $GITHUB_STEP_SUMMARY
+          echo "gradle --version:" >> $GITHUB_STEP_SUMMARY
+          gradle --version >> $GITHUB_STEP_SUMMARY 2>&1
+          echo "Building..." >> $GITHUB_STEP_SUMMARY
+          gradle assembleDebug --no-daemon --stacktrace >> $GITHUB_STEP_SUMMARY 2>&1
 
       - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: scooter-tracker-debug
-          path: app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
