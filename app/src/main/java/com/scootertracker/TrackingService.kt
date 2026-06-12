@@ -9,19 +9,13 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.location.GnssStatus
 import android.location.Location
+import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Binder
-import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.roundToInt
@@ -33,10 +27,10 @@ class TrackingService : Service() {
     }
 
     private val binder = LocalBinder()
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationManager: LocationManager
     private lateinit var prefs: SharedPreferences
-    private var locationCallback: LocationCallback? = null
+    private var gpsListener: LocationListener? = null
+    private var netListener: LocationListener? = null
     private var gnssCallback: GnssStatus.Callback? = null
 
     private var lastLocation: Location? = null
@@ -62,7 +56,6 @@ class TrackingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         totalDistanceMeters = prefs.getFloat(PREFS_DISTANCE, 0f)
@@ -91,7 +84,7 @@ class TrackingService : Service() {
         _isTracking.value = true
         try {
             startForeground(NOTIFICATION_ID, createNotification())
-            startLocationUpdates()
+            startGps()
         } catch (e: Exception) {
             _isTracking.value = false
             stopSelf()
@@ -111,7 +104,7 @@ class TrackingService : Service() {
         _isTracking.value = false
         _speedKmh.value = 0f
         saveDistance()
-        stopLocationUpdates()
+        stopGps()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -125,22 +118,16 @@ class TrackingService : Service() {
         super.onDestroy()
     }
 
-    private fun startLocationUpdates() {
-        val locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            UPDATE_INTERVAL_MS
-        ).apply {
-            setMinUpdateIntervalMillis(FASTEST_INTERVAL_MS)
-            setMaxUpdateDelayMillis(MAX_WAIT_MS)
-        }.build()
-
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                result.locations.forEach { location ->
-                    processLocation(location)
-                }
-            }
+    private fun startGps() {
+        val gpsListener = LocationListener { location ->
+            processLocation(location)
         }
+        this.gpsListener = gpsListener
+
+        val netListener = LocationListener { location ->
+            if (lastLocation == null) processLocation(location)
+        }
+        this.netListener = netListener
 
         gnssCallback = object : GnssStatus.Callback() {
             override fun onSatelliteStatusChanged(status: GnssStatus) {
@@ -151,35 +138,34 @@ class TrackingService : Service() {
                 _satelliteCount.value = status.satelliteCount
                 _hasGpsFix.value = used > 0
             }
-
             override fun onStarted() {}
             override fun onStopped() {}
             override fun onFirstFix(ttffMillis: Int) {}
         }
 
         try {
-            fusedLocationClient.requestLocationUpdates(
-                locationRequest,
-                locationCallback!!,
-                mainLooper
-            )
-            locationManager.registerGnssStatusCallback(
-                gnssCallback!!,
-                Handler.createAsync(Looper.getMainLooper())
-            )
-        } catch (e: Exception) {
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER, 1000L, 0f, gpsListener, Looper.getMainLooper()
+                )
+            }
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, 3000L, 0f, netListener, Looper.getMainLooper()
+                )
+            }
+            locationManager.registerGnssStatusCallback(gnssCallback!!, Handler(Looper.getMainLooper()))
+        } catch (e: SecurityException) {
             _isTracking.value = false
         }
     }
 
-    private fun stopLocationUpdates() {
-        locationCallback?.let {
-            fusedLocationClient.removeLocationUpdates(it)
-        }
-        locationCallback = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            gnssCallback?.let { locationManager.unregisterGnssStatusCallback(it) }
-        }
+    private fun stopGps() {
+        gpsListener?.let { locationManager.removeUpdates(it) }
+        netListener?.let { locationManager.removeUpdates(it) }
+        gpsListener = null
+        netListener = null
+        gnssCallback?.let { locationManager.unregisterGnssStatusCallback(it) }
         gnssCallback = null
         _satelliteCount.value = 0
         _hasGpsFix.value = false
@@ -257,9 +243,6 @@ class TrackingService : Service() {
         private const val NOTIFICATION_ID = 1
         private const val PREFS_NAME = "scooter_tracker_prefs"
         private const val PREFS_DISTANCE = "total_distance_meters"
-        private const val UPDATE_INTERVAL_MS = 2000L
-        private const val FASTEST_INTERVAL_MS = 1000L
-        private const val MAX_WAIT_MS = 5000L
         private const val MIN_DELTA_METERS = 2f
 
         fun formatDistance(km: Float): String {
