@@ -4,6 +4,7 @@
     <string name="channel_name">Трекинг скутера</string>
     <string name="channel_description">Уведомление о активном трекинге</string>
     <string name="tracking_active">Трекинг активен</string>
+    <string name="tracking_stopped">Трекинг остановлен</string>
     <string name="start">Старт</string>
     <string name="stop">Стоп</string>
     <string name="distance">Расстояние</string>

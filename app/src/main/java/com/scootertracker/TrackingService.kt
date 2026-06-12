@@ -105,8 +105,7 @@ class TrackingService : Service() {
         _speedKmh.value = 0f
         saveDistance()
         stopGps()
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
+        startForeground(NOTIFICATION_ID, createNotification())
     }
 
     private fun saveDistance() {
@@ -218,7 +217,7 @@ class TrackingService : Service() {
 
     private fun createNotification(): Notification {
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(R.string.tracking_active))
+            .setContentTitle(if (_isTracking.value) getString(R.string.tracking_active) else getString(R.string.tracking_stopped))
             .setContentText(formatDistance(_distanceKm.value))
             .setSmallIcon(android.R.drawable.ic_menu_compass)
             .setOngoing(true)
