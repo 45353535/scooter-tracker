@@ -31,18 +31,17 @@ import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
 
-    private var trackingService by mutableStateOf<TrackingService?>(null)
+    private var boundService by mutableStateOf<TrackingService?>(null)
     private var bound = false
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            trackingService = (service as TrackingService.LocalBinder).getService()
+            boundService = (service as TrackingService.LocalBinder).getService()
             bound = true
         }
-
         override fun onServiceDisconnected(name: ComponentName?) {
             bound = false
-            trackingService = null
+            boundService = null
         }
     }
 
@@ -55,7 +54,36 @@ class MainActivity : ComponentActivity() {
         requestPermissions()
 
         setContent {
-            MainScreen(trackingService)
+            MainScreen(
+                trackingService = boundService,
+                onStartClick = {
+                    if (hasLocationPermission()) {
+                        val i = Intent(this@MainActivity, TrackingService::class.java).apply {
+                            action = TrackingService.ACTION_START
+                            putExtra(TrackingService.EXTRA_THRESHOLD, boundService?.speedThresholdKmh ?: 10f)
+                        }
+                        ContextCompat.startForegroundService(this@MainActivity, i)
+                    }
+                },
+                onStopClick = {
+                    boundService?.let {
+                        val i = Intent(this@MainActivity, TrackingService::class.java).apply {
+                            action = TrackingService.ACTION_STOP
+                        }
+                        it.startService(i)
+                    }
+                },
+                onResetClick = { boundService?.resetDistance() },
+                onThresholdChanged = { threshold ->
+                    boundService?.let {
+                        val i = Intent(this@MainActivity, TrackingService::class.java).apply {
+                            action = TrackingService.ACTION_UPDATE_THRESHOLD
+                            putExtra(TrackingService.EXTRA_THRESHOLD, threshold)
+                        }
+                        it.startService(i)
+                    }
+                }
+            )
         }
     }
 
@@ -71,14 +99,13 @@ class MainActivity : ComponentActivity() {
         if (bound) {
             unbindService(connection)
             bound = false
+            boundService = null
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        if (bound) {
-            unbindService(connection)
-        }
+    private fun hasLocationPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED
     }
 
     private fun requestPermissions() {
@@ -113,7 +140,13 @@ private val TextSecondary = Color(0xFF8B8FA3)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(trackingService: TrackingService?) {
+fun MainScreen(
+    trackingService: TrackingService?,
+    onStartClick: () -> Unit,
+    onStopClick: () -> Unit,
+    onResetClick: () -> Unit,
+    onThresholdChanged: (Float) -> Unit
+) {
     var speedThreshold by remember { mutableStateOf(10f) }
 
     val speed by trackingService?.speedKmh?.collectAsState(0f) ?: remember { mutableStateOf(0f) }
@@ -128,24 +161,15 @@ fun MainScreen(trackingService: TrackingService?) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(listOf(DarkBg, Color(0xFF0F0F23)))
-            )
+            .background(Brush.verticalGradient(listOf(DarkBg, Color(0xFF0F0F23))))
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(48.dp))
 
-            Text(
-                "Scooter Tracker",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            Text("Scooter Tracker", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -155,34 +179,13 @@ fun MainScreen(trackingService: TrackingService?) {
             ) {
                 Canvas(modifier = Modifier.size(220.dp)) {
                     val strokeW = 14.dp.toPx()
-                    drawArc(
-                        color = SliderTrack,
-                        startAngle = 135f,
-                        sweepAngle = 270f,
-                        useCenter = false,
-                        style = Stroke(strokeW, cap = StrokeCap.Round)
-                    )
-                    drawArc(
-                        color = SpeedColor,
-                        startAngle = 135f,
-                        sweepAngle = 270f * speedFraction,
-                        useCenter = false,
-                        style = Stroke(strokeW, cap = StrokeCap.Round)
-                    )
+                    drawArc(SliderTrack, 135f, 270f, false, style = Stroke(strokeW, cap = StrokeCap.Round))
+                    drawArc(SpeedColor, 135f, 270f * speedFraction, false, style = Stroke(strokeW, cap = StrokeCap.Round))
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "%.0f".format(speed),
-                        fontSize = 64.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Text(
-                        "км/ч",
-                        fontSize = 16.sp,
-                        color = TextSecondary
-                    )
+                    Text(text = "%.0f".format(speed), fontSize = 64.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("км/ч", fontSize = 16.sp, color = TextSecondary)
                 }
             }
 
@@ -205,22 +208,19 @@ fun MainScreen(trackingService: TrackingService?) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    if (isTracking && !hasGpsFix && satelliteCount > 0) "(нет фиксации)"
-                    else if (!isTracking) ""
-                    else if (hasGpsFix) "— фиксация есть"
-                    else "",
-                    fontSize = 13.sp,
-                    color = TextSecondary
+                    when {
+                        !isTracking -> ""
+                        hasGpsFix -> "— фиксация есть"
+                        satelliteCount > 0 -> "(нет фиксации)"
+                        else -> ""
+                    },
+                    fontSize = 13.sp, color = TextSecondary
                 )
             }
 
             if (speed > 0f && speed < speedThreshold) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Медленнее порога — не учитывается",
-                    fontSize = 13.sp,
-                    color = WarnColor
-                )
+                Text("Медленнее порога — не учитывается", fontSize = 13.sp, color = WarnColor)
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -231,34 +231,24 @@ fun MainScreen(trackingService: TrackingService?) {
                 colors = CardDefaults.cardColors(containerColor = CardBg)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 20.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             TrackingService.formatDistance(distance),
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = DistanceColor
+                            fontSize = 28.sp, fontWeight = FontWeight.Bold, color = DistanceColor
                         )
                         Text("Дистанция", fontSize = 13.sp, color = TextSecondary)
                     }
 
-                    Box(
-                        modifier = Modifier
-                            .width(1.dp)
-                            .height(40.dp)
-                            .background(SliderTrack)
-                    )
+                    Box(modifier = Modifier.width(1.dp).height(40.dp).background(SliderTrack))
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             if (isTracking) "Активен" else "Пауза",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp, fontWeight = FontWeight.Bold,
                             color = if (isTracking) DistanceColor else WarnColor
                         )
                         Text("Статус", fontSize = 13.sp, color = TextSecondary)
@@ -268,38 +258,19 @@ fun MainScreen(trackingService: TrackingService?) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                "Порог скорости",
-                fontSize = 14.sp,
-                color = TextSecondary
-            )
+            Text("Порог скорости", fontSize = 14.sp, color = TextSecondary)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                "%.0f км/ч".format(speedThreshold),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            Text("%.0f км/ч".format(speedThreshold), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
             Spacer(modifier = Modifier.height(8.dp))
 
             Slider(
                 value = speedThreshold,
                 onValueChange = { speedThreshold = it },
-                onValueChangeFinished = {
-                    trackingService?.let {
-                        val intent = Intent(it, TrackingService::class.java).apply {
-                            action = TrackingService.ACTION_UPDATE_THRESHOLD
-                            putExtra(TrackingService.EXTRA_THRESHOLD, speedThreshold)
-                        }
-                        it.startService(intent)
-                    }
-                },
+                onValueChangeFinished = { onThresholdChanged(speedThreshold) },
                 valueRange = 5f..30f,
                 steps = 24,
                 colors = SliderDefaults.colors(
-                    thumbColor = SliderActive,
-                    activeTrackColor = SliderActive,
-                    inactiveTrackColor = SliderTrack
+                    thumbColor = SliderActive, activeTrackColor = SliderActive, inactiveTrackColor = SliderTrack
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -307,20 +278,8 @@ fun MainScreen(trackingService: TrackingService?) {
             Spacer(modifier = Modifier.height(28.dp))
 
             Button(
-                onClick = {
-                    trackingService?.let { svc ->
-                        val intent = Intent(svc, TrackingService::class.java).apply {
-                            action = if (isTracking) TrackingService.ACTION_STOP
-                            else TrackingService.ACTION_START
-                            putExtra(TrackingService.EXTRA_THRESHOLD, speedThreshold)
-                        }
-                        if (isTracking) svc.startService(intent)
-                        else ContextCompat.startForegroundService(svc, intent)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                onClick = { if (isTracking) onStopClick() else onStartClick() },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isTracking) WarnColor else SliderActive,
@@ -329,15 +288,14 @@ fun MainScreen(trackingService: TrackingService?) {
             ) {
                 Text(
                     if (isTracking) "Остановить" else "Начать трекинг",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 18.sp, fontWeight = FontWeight.Bold
                 )
             }
 
             if (!isTracking && distance > 0f) {
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedButton(
-                    onClick = { trackingService?.resetDistance() },
+                    onClick = onResetClick,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = WarnColor)
