@@ -192,7 +192,10 @@ class TrackingService : Service() {
         val speedKm = calculateSpeedKmh(location)
         _speedKmh.value = (speedKm * 10).roundToInt() / 10f
 
-        if (_isTracking.value && speedKm >= speedThresholdKmh) {
+        val isValid = location.accuracy <= 20f &&
+                System.currentTimeMillis() - location.time <= 5000
+
+        if (_isTracking.value && speedKm >= speedThresholdKmh && isValid) {
             lastLocation?.let { last ->
                 val delta = last.distanceTo(location)
                 if (delta > MIN_DELTA_METERS) {
@@ -201,8 +204,10 @@ class TrackingService : Service() {
                 }
             }
         }
-        lastLocation = location
-        lastSpeedCalcTime = location.time
+        if (isValid) {
+            lastLocation = location
+            lastSpeedCalcTime = location.time
+        }
 
         updateNotification()
     }
