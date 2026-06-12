@@ -18,28 +18,40 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
-      - name: Check SDK
+      - name: Setup
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls -la $ANDROID_HOME/ || echo "no ANDROID_HOME"
-          which sdkmanager || echo "no sdkmanager"
-          sdkmanager --list 2>/dev/null | head -5 || echo "sdkmanager failed"
+          yes | sdkmanager --licenses 2>/dev/null || true
+          sdkmanager "platforms;android-34" 2>/dev/null || true
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
 
-      - name: Accept licenses
-        run: yes | sdkmanager --licenses 2>/dev/null || true
-
-      - name: Create local.properties
-        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: "8.5"
 
-      - name: Build APK
+      - name: Build
+        continue-on-error: true
         run: |
-          echo "=== gradle check ==="
-          which gradle || echo "gradle not in PATH"
-          gradle --version || echo "gradle failed"
-          echo "=== start build ==="
-          gradle assembleDebug --no-daemon --stacktrace
+          echo "=== PATH check ===" > debug.txt
+          echo "$PATH" >> debug.txt
+          echo "=== which gradle ===" >> debug.txt
+          (which gradle || echo "NOT FOUND") >> debug.txt 2>&1
+          echo "=== gradle version ===" >> debug.txt
+          (gradle --version || echo "VERSION FAILED") >> debug.txt 2>&1
+          echo "=== ANDROID_HOME ===" >> debug.txt
+          echo "$ANDROID_HOME" >> debug.txt
+          echo "=== local.properties ===" >> debug.txt
+          cat local.properties >> debug.txt
+          echo "=== build ===" >> debug.txt
+          gradle assembleDebug --no-daemon --stacktrace >> debug.txt 2>&1
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: debug-output
+          path: debug.txt
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: scooter-tracker-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
