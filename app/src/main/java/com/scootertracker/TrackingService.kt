@@ -7,11 +7,15 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.location.GnssStatus
 import android.location.Location
+import android.location.LocationManager
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Granularity
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -29,8 +33,10 @@ class TrackingService : Service() {
 
     private val binder = LocalBinder()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationManager: LocationManager
     private lateinit var prefs: SharedPreferences
     private var locationCallback: LocationCallback? = null
+    private var gnssCallback: GnssStatus.Callback? = null
 
     private var lastLocation: Location? = null
     private var lastSpeedCalcTime: Long = 0
@@ -45,11 +51,18 @@ class TrackingService : Service() {
     private val _isTracking = MutableStateFlow(false)
     val isTracking: StateFlow<Boolean> = _isTracking
 
+    private val _satelliteCount = MutableStateFlow(0)
+    val satelliteCount: StateFlow<Int> = _satelliteCount
+
+    private val _hasGpsFix = MutableStateFlow(false)
+    val hasGpsFix: StateFlow<Boolean> = _hasGpsFix
+
     var speedThresholdKmh = 10f
 
     override fun onCreate() {
         super.onCreate()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         totalDistanceMeters = prefs.getFloat(PREFS_DISTANCE, 0f)
         _distanceKm.value = (totalDistanceMeters / 1000f * 100).roundToInt() / 100f
@@ -113,6 +126,7 @@ class TrackingService : Service() {
         ).apply {
             setMinUpdateIntervalMillis(FASTEST_INTERVAL_MS)
             setMaxUpdateDelayMillis(MAX_WAIT_MS)
+            setGranularity(Granularity.GRANULARITY_FINE)
         }.build()
 
         locationCallback = object : LocationCallback() {
@@ -123,12 +137,30 @@ class TrackingService : Service() {
             }
         }
 
+        gnssCallback = object : GnssStatus.Callback() {
+            override fun onSatelliteStatusChanged(status: GnssStatus) {
+                var count = 0
+                for (i in 0 until status.satelliteCount) {
+                    if (status.usedInFix(i)) count++
+                }
+                _satelliteCount.value = status.satelliteCount
+                _hasGpsFix.value = count > 0
+            }
+
+            override fun onStarted() {}
+            override fun onStopped() {}
+            override fun onFirstFix(ttffMillis: Int) {}
+        }
+
         try {
             fusedLocationClient.requestLocationUpdates(
                 locationRequest,
                 locationCallback!!,
                 mainLooper
             )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                locationManager.registerGnssStatusCallback(gnssCallback!!, null)
+            }
         } catch (e: SecurityException) {
             _isTracking.value = false
         }
@@ -139,6 +171,12 @@ class TrackingService : Service() {
             fusedLocationClient.removeLocationUpdates(it)
         }
         locationCallback = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            gnssCallback?.let { locationManager.unregisterGnssStatusCallback(it) }
+        }
+        gnssCallback = null
+        _satelliteCount.value = 0
+        _hasGpsFix.value = false
     }
 
     private fun processLocation(location: Location) {

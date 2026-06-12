@@ -119,6 +119,8 @@ fun MainScreen(trackingService: TrackingService?) {
     val speed by trackingService?.speedKmh?.collectAsState(0f) ?: remember { mutableStateOf(0f) }
     val distance by trackingService?.distanceKm?.collectAsState(0f) ?: remember { mutableStateOf(0f) }
     val isTracking by trackingService?.isTracking?.collectAsState(false) ?: remember { mutableStateOf(false) }
+    val satelliteCount by trackingService?.satelliteCount?.collectAsState(0) ?: remember { mutableStateOf(0) }
+    val hasGpsFix by trackingService?.hasGpsFix?.collectAsState(false) ?: remember { mutableStateOf(false) }
 
     val maxSpeed = 60f
     val speedFraction = (speed / maxSpeed).coerceIn(0f, 1f)
@@ -182,6 +184,34 @@ fun MainScreen(trackingService: TrackingService?) {
                         color = TextSecondary
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Canvas(modifier = Modifier.size(10.dp)) {
+                    drawCircle(
+                        color = if (hasGpsFix && satelliteCount > 0) DistanceColor
+                                else if (satelliteCount > 0) WarnColor
+                                else Color(0xFF555555)
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    "$satelliteCount спутников",
+                    fontSize = 13.sp,
+                    color = if (hasGpsFix) DistanceColor
+                            else if (satelliteCount > 0) WarnColor
+                            else TextSecondary
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    if (isTracking && !hasGpsFix && satelliteCount > 0) "(нет фиксации)"
+                    else if (!isTracking) ""
+                    else if (hasGpsFix) "— фиксация есть"
+                    else "",
+                    fontSize = 13.sp,
+                    color = TextSecondary
+                )
             }
 
             if (speed > 0f && speed < speedThreshold) {
