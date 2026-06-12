@@ -28,7 +28,23 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
+
+      - name: Debug
+        if: failure()
+        run: |
+          echo "::warning::=== ERROR LINES ==="
+          grep -A3 "e:\|FAILED\|error:\|What went wrong\|BUILD FAILED" /tmp/build.log 2>/dev/null | head -30 | while IFS= read -r line; do
+            echo "::warning::$line"
+          done
+          echo "::warning::=== LAST 20 ==="
+          tail -20 /tmp/build.log 2>/dev/null | while IFS= read -r line; do
+            echo "::warning::$line"
+          done
 
       - uses: actions/upload-artifact@v4
         if: success()
