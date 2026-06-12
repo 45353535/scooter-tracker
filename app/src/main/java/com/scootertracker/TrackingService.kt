@@ -81,6 +81,16 @@ class TrackingService : Service() {
                 start()
             }
             ACTION_STOP -> stop()
+            ACTION_EXIT -> {
+                if (_isTracking.value) {
+                    _isTracking.value = false
+                    _speedKmh.value = 0f
+                    stopGps()
+                }
+                saveDistance()
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
+            }
             ACTION_UPDATE_THRESHOLD -> {
                 speedThresholdKmh = intent.getFloatExtra(EXTRA_THRESHOLD, speedThresholdKmh)
             }
@@ -261,6 +271,7 @@ class TrackingService : Service() {
     companion object {
         const val ACTION_START = "com.scootertracker.START"
         const val ACTION_STOP = "com.scootertracker.STOP"
+        const val ACTION_EXIT = "com.scootertracker.EXIT"
         const val ACTION_UPDATE_THRESHOLD = "com.scootertracker.UPDATE_THRESHOLD"
         const val EXTRA_THRESHOLD = "threshold"
 

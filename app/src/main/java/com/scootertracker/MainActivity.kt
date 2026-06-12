@@ -79,7 +79,14 @@ class MainActivity : ComponentActivity() {
                     }
                     ContextCompat.startForegroundService(this@MainActivity, i)
                 },
-                onResetClick = { svc?.resetDistance() }
+                onResetClick = { svc?.resetDistance() },
+                onExitClick = {
+                    val i = Intent(this@MainActivity, TrackingService::class.java).apply {
+                        action = TrackingService.ACTION_EXIT
+                    }
+                    ContextCompat.startForegroundService(this@MainActivity, i)
+                    finishAndRemoveTask()
+                }
             )
         }
     }
@@ -138,7 +145,8 @@ fun MainScreen(
     trackingService: TrackingService?,
     onStartClick: (Float) -> Unit,
     onStopClick: () -> Unit,
-    onResetClick: () -> Unit
+    onResetClick: () -> Unit,
+    onExitClick: () -> Unit
 ) {
     var speedThreshold by remember { mutableStateOf(10f) }
 
@@ -295,6 +303,17 @@ fun MainScreen(
                     Text("Сбросить дистанцию", fontWeight = FontWeight.Bold)
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            TextButton(
+                onClick = onExitClick,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(contentColor = TextSecondary)
+            ) {
+                Text("Выход", fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
