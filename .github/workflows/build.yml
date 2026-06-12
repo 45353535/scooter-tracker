@@ -45,6 +45,11 @@ jobs:
       - name: Show error on fail
         if: failure()
         run: |
-          echo "::warning::=== BUILD LOG URL ==="
-          pbin=$(curl -s -F 'f:1=<-' ix.io < /tmp/build.log 2>/dev/null)
-          echo "::warning::$pbin"
+          echo "::warning::=== What went wrong ==="
+          grep -A5 "FAILED\|What went wrong\|Caused by\|BUILD FAILED" /tmp/build.log 2>/dev/null | head -30 | while IFS= read -r line; do
+            echo "::warning::$line"
+          done
+          echo "::warning::=== Last 15 lines ==="
+          tail -15 /tmp/build.log 2>/dev/null | while IFS= read -r line; do
+            echo "::warning::$line"
+          done
