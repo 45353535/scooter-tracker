@@ -31,7 +31,18 @@ jobs:
           gradle wrapper --gradle-version 8.5
 
       - name: Build APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        id: build
+        run: |
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
+
+      - name: Upload debug
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "Build log $(date)" \
+            --body "$(cat /tmp/build.log)"
 
       - uses: actions/upload-artifact@v4
         if: success()
