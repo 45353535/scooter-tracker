@@ -28,20 +28,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class MainActivity : ComponentActivity() {
 
-    private var boundService by mutableStateOf<TrackingService?>(null)
+    private val _serviceFlow = MutableStateFlow<TrackingService?>(null)
+    val serviceFlow: StateFlow<TrackingService?> = _serviceFlow
+
     private var bound = false
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            boundService = (service as TrackingService.LocalBinder).getService()
+            _serviceFlow.value = (service as TrackingService.LocalBinder).getService()
             bound = true
         }
         override fun onServiceDisconnected(name: ComponentName?) {
             bound = false
-            boundService = null
+            _serviceFlow.value = null
         }
     }
 
@@ -54,35 +58,26 @@ class MainActivity : ComponentActivity() {
         requestPermissions()
 
         setContent {
+            val svc by serviceFlow.collectAsState()
+
             MainScreen(
-                trackingService = boundService,
-                onStartClick = {
+                trackingService = svc,
+                onStartClick = { threshold ->
                     if (hasLocationPermission()) {
                         val i = Intent(this@MainActivity, TrackingService::class.java).apply {
                             action = TrackingService.ACTION_START
-                            putExtra(TrackingService.EXTRA_THRESHOLD, boundService?.speedThresholdKmh ?: 10f)
+                            putExtra(TrackingService.EXTRA_THRESHOLD, threshold)
                         }
                         ContextCompat.startForegroundService(this@MainActivity, i)
                     }
                 },
                 onStopClick = {
-                    boundService?.let {
-                        val i = Intent(this@MainActivity, TrackingService::class.java).apply {
-                            action = TrackingService.ACTION_STOP
-                        }
-                        it.startService(i)
+                    val i = Intent(this@MainActivity, TrackingService::class.java).apply {
+                        action = TrackingService.ACTION_STOP
                     }
+                    ContextCompat.startForegroundService(this@MainActivity, i)
                 },
-                onResetClick = { boundService?.resetDistance() },
-                onThresholdChanged = { threshold ->
-                    boundService?.let {
-                        val i = Intent(this@MainActivity, TrackingService::class.java).apply {
-                            action = TrackingService.ACTION_UPDATE_THRESHOLD
-                            putExtra(TrackingService.EXTRA_THRESHOLD, threshold)
-                        }
-                        it.startService(i)
-                    }
-                }
+                onResetClick = { svc?.resetDistance() }
             )
         }
     }
@@ -99,7 +94,7 @@ class MainActivity : ComponentActivity() {
         if (bound) {
             unbindService(connection)
             bound = false
-            boundService = null
+            _serviceFlow.value = null
         }
     }
 
@@ -142,10 +137,9 @@ private val TextSecondary = Color(0xFF8B8FA3)
 @Composable
 fun MainScreen(
     trackingService: TrackingService?,
-    onStartClick: () -> Unit,
+    onStartClick: (Float) -> Unit,
     onStopClick: () -> Unit,
-    onResetClick: () -> Unit,
-    onThresholdChanged: (Float) -> Unit
+    onResetClick: () -> Unit
 ) {
     var speedThreshold by remember { mutableStateOf(10f) }
 
@@ -266,7 +260,6 @@ fun MainScreen(
             Slider(
                 value = speedThreshold,
                 onValueChange = { speedThreshold = it },
-                onValueChangeFinished = { onThresholdChanged(speedThreshold) },
                 valueRange = 5f..30f,
                 steps = 24,
                 colors = SliderDefaults.colors(
@@ -278,7 +271,7 @@ fun MainScreen(
             Spacer(modifier = Modifier.height(28.dp))
 
             Button(
-                onClick = { if (isTracking) onStopClick() else onStartClick() },
+                onClick = { if (isTracking) onStopClick() else onStartClick(speedThreshold) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
