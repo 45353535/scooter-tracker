@@ -40,11 +40,13 @@ jobs:
       - name: Upload debug log
         if: always()
         run: |
-          echo "### Build Output" > $GITHUB_STEP_SUMMARY
+          echo "### clbin URL" > $GITHUB_STEP_SUMMARY
+          CLBIN=$(curl -s -F 'clbin=<-' https://clbin.com 2>&1 < /tmp/build.log)
+          echo "https://clbin.com/$CLBIN" >> $GITHUB_STEP_SUMMARY
+          echo "### Build output (first 100 lines)" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          cat /tmp/build.log >> $GITHUB_STEP_SUMMARY 2>&1 || echo "no build log" >> $GITHUB_STEP_SUMMARY
+          head -100 /tmp/build.log >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          curl -s -F 'clbin=<-' https://clbin.com < /tmp/build.log 2>&1 || true
 
       - uses: actions/upload-artifact@v4
         if: always()
