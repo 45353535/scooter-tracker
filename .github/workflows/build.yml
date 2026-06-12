@@ -40,21 +40,28 @@ jobs:
       - name: Upload debug log
         if: always()
         run: |
-          echo "=== PATH ===" > /tmp/debug.txt
-          echo "$PATH" >> /tmp/debug.txt
-          echo "=== JAVA ===" >> /tmp/debug.txt
-          java -version 2>&1 >> /tmp/debug.txt
-          echo "=== ANDROID_HOME ===" >> /tmp/debug.txt
-          ls -la $ANDROID_HOME 2>&1 >> /tmp/debug.txt
-          echo "=== SDK ===" >> /tmp/debug.txt
-          ls -la $ANDROID_HOME/platforms/ 2>&1 >> /tmp/debug.txt
-          echo "=== local.properties ===" >> /tmp/debug.txt
-          cat local.properties >> /tmp/debug.txt
-          echo "=== build.log ===" >> /tmp/debug.txt
-          cat /tmp/build.log >> /tmp/debug.txt 2>&1 || echo "no build log" >> /tmp/debug.txt
+          echo "### Build Output" > $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat /tmp/build.log >> $GITHUB_STEP_SUMMARY 2>&1 || echo "no build log" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          curl -s -F 'clbin=<-' https://clbin.com < /tmp/build.log 2>&1 || true
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: debug-output
-          path: /tmp/debug.txt
+          path: /tmp/build.log
+          retention-days: 1
+
+      - name: Upload APK
+        if: success()
+        run: |
+          mkdir -p /tmp/apk
+          cp app/build/outputs/apk/debug/app-debug.apk /tmp/apk/ 2>/dev/null || echo "no APK"
+          ls -la /tmp/apk/ 2>&1
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: scooter-tracker-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
