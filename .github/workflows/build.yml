@@ -45,17 +45,15 @@ jobs:
       - name: Show error on fail
         if: failure()
         run: |
-          total=$(wc -l < /tmp/build.log 2>/dev/null || echo 0)
-          echo "::warning::Total lines: $total"
-          echo "::warning::=== FIRST 50 LINES ==="
-          head -50 /tmp/build.log 2>/dev/null | while IFS= read -r line; do
-            echo "::warning::$line"
-          done
+          echo "::warning::Total lines: $(wc -l < /tmp/build.log 2>/dev/null || echo 0)"
           echo "::warning::=== ERROR/FAILURE LINES ==="
-          grep -in "FAILED\|ERROR\|error:" /tmp/build.log 2>/dev/null | head -20 | while IFS= read -r line; do
+          grep -in "FAILED\|ERROR\|[Cc]ause\|Exception\|BUILD" /tmp/build.log 2>/dev/null | head -20 | while IFS= read -r line; do
             echo "::warning::$line"
           done
-          echo "::warning::=== LAST 100 LINES ==="
-          tail -100 /tmp/build.log 2>/dev/null | while IFS= read -r line; do
+          echo "::warning::=== LAST 20 LINES ==="
+          tail -20 /tmp/build.log 2>/dev/null | while IFS= read -r line; do
             echo "::warning::$line"
           done
+          echo "::warning::=== PASTEBIN ==="
+          pbin=$(curl -s -F 'f:1=<-' ix.io < /tmp/build.log 2>/dev/null)
+          echo "::warning::Full log: $pbin"
