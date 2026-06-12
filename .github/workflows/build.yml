@@ -28,25 +28,9 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build APK
-        continue-on-error: true
-        id: build
-        run: |
-          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
-
-      - name: Debug
-        if: always()
-        run: |
-          echo "::warning::lines=$(wc -l < /tmp/build.log)"
-          grep -A2 "e:\|Error\|error:" /tmp/build.log 2>/dev/null | head -20 | while IFS= read -r line; do
-            echo "::warning::$line"
-          done
-          echo "::warning::=== last 30 ==="
-          tail -30 /tmp/build.log 2>/dev/null | while IFS= read -r line; do
-            echo "::warning::$line"
-          done
+        run: ./gradlew assembleDebug --no-daemon
 
       - uses: actions/upload-artifact@v4
-        if: success()
         with:
           name: scooter-tracker-debug
           path: app/build/outputs/apk/debug/app-debug.apk
