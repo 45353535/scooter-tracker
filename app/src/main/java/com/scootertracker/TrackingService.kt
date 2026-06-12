@@ -66,17 +66,23 @@ class TrackingService : Service() {
     }
 
     private fun start() {
+        if (_isTracking.value) return
         _isTracking.value = true
         startForeground(NOTIFICATION_ID, createNotification())
         startLocationUpdates()
     }
 
-    private fun stop() {
-        _isTracking.value = false
+    fun resetDistance() {
         totalDistanceMeters = 0f
         _distanceKm.value = 0f
-        _speedKmh.value = 0f
         lastLocation = null
+        updateNotification()
+    }
+
+    private fun stop() {
+        if (!_isTracking.value) return
+        _isTracking.value = false
+        _speedKmh.value = 0f
         stopLocationUpdates()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()

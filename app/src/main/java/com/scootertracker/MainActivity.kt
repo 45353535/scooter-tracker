@@ -130,7 +130,7 @@ fun MainScreen(trackingService: TrackingService?) {
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -158,13 +158,6 @@ fun MainScreen(trackingService: TrackingService?) {
                             "Медленнее порога — не учитывается",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                    if (speed == 0f && !isTracking) {
-                        Text(
-                            "Нажмите «Начать трекинг»",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -225,7 +218,7 @@ fun MainScreen(trackingService: TrackingService?) {
                 Text("30 км/ч", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
@@ -253,6 +246,16 @@ fun MainScreen(trackingService: TrackingService?) {
                     if (isTracking) "Остановить" else "Начать трекинг",
                     fontSize = 18.sp
                 )
+            }
+
+            if (!isTracking && distance > 0f) {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = { trackingService?.resetDistance() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Сбросить дистанцию")
+                }
             }
         }
     }
