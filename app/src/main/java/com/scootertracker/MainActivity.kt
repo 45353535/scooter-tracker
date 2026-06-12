@@ -31,7 +31,7 @@ import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
 
-    private var trackingService: TrackingService? = null
+    private var trackingService by mutableStateOf<TrackingService?>(null)
     private var bound = false
 
     private val connection = object : ServiceConnection {
