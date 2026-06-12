@@ -1,5 +1,6 @@
 package com.scootertracker
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,6 +8,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.location.GnssStatus
 import android.location.Location
 import android.location.LocationListener
@@ -154,6 +156,7 @@ class TrackingService : Service() {
     }
 
     private fun startGnss() {
+        if (gnssCallback != null) return
         gnssCallback = object : GnssStatus.Callback() {
             override fun onSatelliteStatusChanged(status: GnssStatus) {
                 var used = 0
@@ -167,10 +170,17 @@ class TrackingService : Service() {
             override fun onStopped() {}
             override fun onFirstFix(ttffMillis: Int) {}
         }
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) return
         try {
             locationManager.registerGnssStatusCallback(gnssCallback!!, Handler(Looper.getMainLooper()))
         } catch (_: SecurityException) {
         }
+    }
+
+    fun retryGnssIfNeeded() {
+        startGnss()
     }
 
     private fun stopGnss() {
