@@ -12,10 +12,11 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Binder
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.Granularity
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -88,8 +89,13 @@ class TrackingService : Service() {
     private fun start() {
         if (_isTracking.value) return
         _isTracking.value = true
-        startForeground(NOTIFICATION_ID, createNotification())
-        startLocationUpdates()
+        try {
+            startForeground(NOTIFICATION_ID, createNotification())
+            startLocationUpdates()
+        } catch (e: Exception) {
+            _isTracking.value = false
+            stopSelf()
+        }
     }
 
     fun resetDistance() {
@@ -126,7 +132,6 @@ class TrackingService : Service() {
         ).apply {
             setMinUpdateIntervalMillis(FASTEST_INTERVAL_MS)
             setMaxUpdateDelayMillis(MAX_WAIT_MS)
-            setGranularity(Granularity.GRANULARITY_FINE)
         }.build()
 
         locationCallback = object : LocationCallback() {
@@ -139,12 +144,12 @@ class TrackingService : Service() {
 
         gnssCallback = object : GnssStatus.Callback() {
             override fun onSatelliteStatusChanged(status: GnssStatus) {
-                var count = 0
+                var used = 0
                 for (i in 0 until status.satelliteCount) {
-                    if (status.usedInFix(i)) count++
+                    if (status.usedInFix(i)) used++
                 }
                 _satelliteCount.value = status.satelliteCount
-                _hasGpsFix.value = count > 0
+                _hasGpsFix.value = used > 0
             }
 
             override fun onStarted() {}
@@ -158,10 +163,11 @@ class TrackingService : Service() {
                 locationCallback!!,
                 mainLooper
             )
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                locationManager.registerGnssStatusCallback(gnssCallback!!, null)
-            }
-        } catch (e: SecurityException) {
+            locationManager.registerGnssStatusCallback(
+                gnssCallback!!,
+                Handler.createAsync(Looper.getMainLooper())
+            )
+        } catch (e: Exception) {
             _isTracking.value = false
         }
     }
