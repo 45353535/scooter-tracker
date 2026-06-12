@@ -24,43 +24,14 @@ jobs:
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
-      - name: Install Gradle
+      - name: Generate Gradle wrapper
         run: |
-          curl -sL https://services.gradle.org/distributions/gradle-8.5-bin.zip -o /tmp/gradle.zip
-          unzip -q /tmp/gradle.zip -d /tmp/gradle-install
-          echo "/tmp/gradle-install/gradle-8.5/bin" >> $GITHUB_PATH
-          echo "GRADLE_HOME=/tmp/gradle-install/gradle-8.5" >> $GITHUB_ENV
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq gradle
+          gradle wrapper --gradle-version 8.5
 
       - name: Build APK
-        continue-on-error: true
-        run: |
-          gradle --version
-          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
-
-      - name: Upload debug log
-        if: always()
-        run: |
-          echo "### clbin URL" > $GITHUB_STEP_SUMMARY
-          CLBIN=$(curl -s -F 'clbin=<-' https://clbin.com 2>&1 < /tmp/build.log)
-          echo "https://clbin.com/$CLBIN" >> $GITHUB_STEP_SUMMARY
-          echo "### Build output (first 100 lines)" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          head -100 /tmp/build.log >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: debug-output
-          path: /tmp/build.log
-          retention-days: 1
-
-      - name: Upload APK
-        if: success()
-        run: |
-          mkdir -p /tmp/apk
-          cp app/build/outputs/apk/debug/app-debug.apk /tmp/apk/ 2>/dev/null || echo "no APK"
-          ls -la /tmp/apk/ 2>&1
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         if: success()
