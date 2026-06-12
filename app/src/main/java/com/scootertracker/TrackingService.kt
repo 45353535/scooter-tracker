@@ -61,6 +61,13 @@ class TrackingService : Service() {
         totalDistanceMeters = prefs.getFloat(PREFS_DISTANCE, 0f)
         _distanceKm.value = (totalDistanceMeters / 1000f * 100).roundToInt() / 100f
         createNotificationChannel()
+        startGnss()
+    }
+
+    override fun onDestroy() {
+        stopGnss()
+        saveDistance()
+        super.onDestroy()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -112,11 +119,6 @@ class TrackingService : Service() {
         prefs.edit().putFloat(PREFS_DISTANCE, totalDistanceMeters).apply()
     }
 
-    override fun onDestroy() {
-        saveDistance()
-        super.onDestroy()
-    }
-
     private fun startGps() {
         val gpsListener = LocationListener { location ->
             processLocation(location)
@@ -128,6 +130,30 @@ class TrackingService : Service() {
         }
         this.netListener = netListener
 
+        try {
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER, 1000L, 0f, gpsListener, Looper.getMainLooper()
+                )
+            }
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, 3000L, 0f, netListener, Looper.getMainLooper()
+                )
+            }
+        } catch (e: SecurityException) {
+            _isTracking.value = false
+        }
+    }
+
+    private fun stopGps() {
+        gpsListener?.let { locationManager.removeUpdates(it) }
+        netListener?.let { locationManager.removeUpdates(it) }
+        gpsListener = null
+        netListener = null
+    }
+
+    private fun startGnss() {
         gnssCallback = object : GnssStatus.Callback() {
             override fun onSatelliteStatusChanged(status: GnssStatus) {
                 var used = 0
@@ -141,29 +167,13 @@ class TrackingService : Service() {
             override fun onStopped() {}
             override fun onFirstFix(ttffMillis: Int) {}
         }
-
         try {
-            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER, 1000L, 0f, gpsListener, Looper.getMainLooper()
-                )
-            }
-            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER, 3000L, 0f, netListener, Looper.getMainLooper()
-                )
-            }
             locationManager.registerGnssStatusCallback(gnssCallback!!, Handler(Looper.getMainLooper()))
-        } catch (e: SecurityException) {
-            _isTracking.value = false
+        } catch (_: SecurityException) {
         }
     }
 
-    private fun stopGps() {
-        gpsListener?.let { locationManager.removeUpdates(it) }
-        netListener?.let { locationManager.removeUpdates(it) }
-        gpsListener = null
-        netListener = null
+    private fun stopGnss() {
         gnssCallback?.let { locationManager.unregisterGnssStatusCallback(it) }
         gnssCallback = null
         _satelliteCount.value = 0
