@@ -18,37 +18,26 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
-      - name: Setup
+      - name: Accept licenses
+        run: yes | sdkmanager --licenses 2>/dev/null || true
+
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      - name: Install Gradle
         run: |
-          yes | sdkmanager --licenses 2>/dev/null || true
-          sdkmanager "platforms;android-34" 2>/dev/null || true
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          curl -sL https://services.gradle.org/distributions/gradle-8.5-bin.zip -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp/gradle-install
+          echo "/tmp/gradle-install/gradle-8.5/bin" >> $GITHUB_PATH
+          gradle --version
 
-      - uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: "8.5"
-
-      - name: Build
-        continue-on-error: true
+      - name: Generate wrapper
         run: |
-          echo "=== PATH check ===" > debug.txt
-          echo "$PATH" >> debug.txt
-          echo "=== which gradle ===" >> debug.txt
-          (which gradle || echo "NOT FOUND") >> debug.txt 2>&1
-          echo "=== gradle version ===" >> debug.txt
-          (gradle --version || echo "VERSION FAILED") >> debug.txt 2>&1
-          echo "=== ANDROID_HOME ===" >> debug.txt
-          echo "$ANDROID_HOME" >> debug.txt
-          echo "=== local.properties ===" >> debug.txt
-          cat local.properties >> debug.txt
-          echo "=== build ===" >> debug.txt
-          gradle assembleDebug --no-daemon --stacktrace >> debug.txt 2>&1
+          gradle wrapper --gradle-version 8.5
+          ls -la gradlew gradle/wrapper/
 
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: debug-output
-          path: debug.txt
+      - name: Build APK
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         if: success()
