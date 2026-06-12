@@ -4,7 +4,9 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.location.Location
 import android.os.Binder
 import android.os.IBinder
@@ -27,9 +29,11 @@ class TrackingService : Service() {
 
     private val binder = LocalBinder()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var prefs: SharedPreferences
     private var locationCallback: LocationCallback? = null
 
     private var lastLocation: Location? = null
+    private var lastSpeedCalcTime: Long = 0
     private var totalDistanceMeters = 0f
 
     private val _speedKmh = MutableStateFlow(0f)
@@ -46,6 +50,9 @@ class TrackingService : Service() {
     override fun onCreate() {
         super.onCreate()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        totalDistanceMeters = prefs.getFloat(PREFS_DISTANCE, 0f)
+        _distanceKm.value = (totalDistanceMeters / 1000f * 100).roundToInt() / 100f
         createNotificationChannel()
     }
 
@@ -76,6 +83,7 @@ class TrackingService : Service() {
         totalDistanceMeters = 0f
         _distanceKm.value = 0f
         lastLocation = null
+        prefs.edit().putFloat(PREFS_DISTANCE, 0f).apply()
         updateNotification()
     }
 
@@ -83,9 +91,19 @@ class TrackingService : Service() {
         if (!_isTracking.value) return
         _isTracking.value = false
         _speedKmh.value = 0f
+        saveDistance()
         stopLocationUpdates()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+    }
+
+    private fun saveDistance() {
+        prefs.edit().putFloat(PREFS_DISTANCE, totalDistanceMeters).apply()
+    }
+
+    override fun onDestroy() {
+        saveDistance()
+        super.onDestroy()
     }
 
     private fun startLocationUpdates() {
@@ -124,8 +142,7 @@ class TrackingService : Service() {
     }
 
     private fun processLocation(location: Location) {
-        val speedMs = location.speed
-        val speedKm = speedMs * 3.6f
+        val speedKm = calculateSpeedKmh(location)
         _speedKmh.value = (speedKm * 10).roundToInt() / 10f
 
         if (speedKm >= speedThresholdKmh) {
@@ -138,8 +155,23 @@ class TrackingService : Service() {
             }
         }
         lastLocation = location
+        lastSpeedCalcTime = location.time
 
         updateNotification()
+    }
+
+    private fun calculateSpeedKmh(location: Location): Float {
+        val gpsSpeed = location.speed
+        if (gpsSpeed > 0f) return gpsSpeed * 3.6f
+
+        if (lastLocation != null && lastSpeedCalcTime > 0) {
+            val timeDelta = (location.time - lastSpeedCalcTime) / 1000f
+            if (timeDelta in 0.1f..10f) {
+                val distDelta = lastLocation!!.distanceTo(location)
+                return (distDelta / timeDelta) * 3.6f
+            }
+        }
+        return 0f
     }
 
     private fun createNotificationChannel() {
@@ -179,6 +211,8 @@ class TrackingService : Service() {
 
         private const val CHANNEL_ID = "scooter_tracker"
         private const val NOTIFICATION_ID = 1
+        private const val PREFS_NAME = "scooter_tracker_prefs"
+        private const val PREFS_DISTANCE = "total_distance_meters"
         private const val UPDATE_INTERVAL_MS = 2000L
         private const val FASTEST_INTERVAL_MS = 1000L
         private const val MAX_WAIT_MS = 5000L

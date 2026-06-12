@@ -12,12 +12,18 @@ import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,15 +55,7 @@ class MainActivity : ComponentActivity() {
         requestPermissions()
 
         setContent {
-            MaterialTheme(
-                colorScheme = lightColorScheme(
-                    primary = Color(0xFF1976D2),
-                    secondary = Color(0xFF26A69A),
-                    background = Color(0xFFF5F5F5)
-                )
-            ) {
-                MainScreen(trackingService)
-            }
+            MainScreen(trackingService)
         }
     }
 
@@ -103,6 +101,16 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+private val DarkBg = Color(0xFF1A1A2E)
+private val CardBg = Color(0xFF16213E)
+private val AccentBlue = Color(0xFF0F3460)
+private val SpeedColor = Color(0xFF00D2FF)
+private val DistanceColor = Color(0xFF00FF88)
+private val WarnColor = Color(0xFFFF6B6B)
+private val SliderTrack = Color(0xFF2D3561)
+private val SliderActive = Color(0xFF00D2FF)
+private val TextSecondary = Color(0xFF8B8FA3)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(trackingService: TrackingService?) {
@@ -112,85 +120,135 @@ fun MainScreen(trackingService: TrackingService?) {
     val distance by trackingService?.distanceKm?.collectAsState(0f) ?: remember { mutableStateOf(0f) }
     val isTracking by trackingService?.isTracking?.collectAsState(false) ?: remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Scooter Tracker") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+    val maxSpeed = 60f
+    val speedFraction = (speed / maxSpeed).coerceIn(0f, 1f)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(listOf(DarkBg, Color(0xFF0F0F23)))
             )
-        }
-    ) { padding ->
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp),
+                .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(48.dp))
+
+            Text(
+                "Scooter Tracker",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            Box(
+                modifier = Modifier.size(220.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Скорость", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "%.1f км/ч".format(speed),
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (speed >= speedThreshold)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurface
+                Canvas(modifier = Modifier.size(220.dp)) {
+                    val strokeW = 14.dp.toPx()
+                    drawArc(
+                        color = SliderTrack,
+                        startAngle = 135f,
+                        sweepAngle = 270f,
+                        useCenter = false,
+                        style = Stroke(strokeW, cap = StrokeCap.Round)
                     )
-                    if (speed > 0f && speed < speedThreshold) {
-                        Text(
-                            "Медленнее порога — не учитывается",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
+                    drawArc(
+                        color = SpeedColor,
+                        startAngle = 135f,
+                        sweepAngle = 270f * speedFraction,
+                        useCenter = false,
+                        style = Stroke(strokeW, cap = StrokeCap.Round)
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "%.0f".format(speed),
+                        fontSize = 64.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        "км/ч",
+                        fontSize = 16.sp,
+                        color = TextSecondary
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            if (speed > 0f && speed < speedThreshold) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Медленнее порога — не учитывается",
+                    fontSize = 13.sp,
+                    color = WarnColor
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = CardBg)
             ) {
-                Column(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(vertical = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Пройдено на скутере", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = TrackingService.formatDistance(distance),
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.secondary
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            TrackingService.formatDistance(distance),
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DistanceColor
+                        )
+                        Text("Дистанция", fontSize = 13.sp, color = TextSecondary)
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .width(1.dp)
+                            .height(40.dp)
+                            .background(SliderTrack)
                     )
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            if (isTracking) "Активен" else "Пауза",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isTracking) DistanceColor else WarnColor
+                        )
+                        Text("Статус", fontSize = 13.sp, color = TextSecondary)
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                "Порог скорости: %.0f км/ч".format(speedThreshold),
-                style = MaterialTheme.typography.titleMedium
+                "Порог скорости",
+                fontSize = 14.sp,
+                color = TextSecondary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "%.0f км/ч".format(speedThreshold),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -208,17 +266,15 @@ fun MainScreen(trackingService: TrackingService?) {
                 },
                 valueRange = 5f..30f,
                 steps = 24,
+                colors = SliderDefaults.colors(
+                    thumbColor = SliderActive,
+                    activeTrackColor = SliderActive,
+                    inactiveTrackColor = SliderTrack
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("5 км/ч", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("30 км/ч", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             Button(
                 onClick = {
@@ -235,16 +291,16 @@ fun MainScreen(trackingService: TrackingService?) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isTracking)
-                        MaterialTheme.colorScheme.error
-                    else
-                        MaterialTheme.colorScheme.primary
+                    containerColor = if (isTracking) WarnColor else SliderActive,
+                    contentColor = Color.White
                 )
             ) {
                 Text(
                     if (isTracking) "Остановить" else "Начать трекинг",
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
@@ -252,9 +308,11 @@ fun MainScreen(trackingService: TrackingService?) {
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedButton(
                     onClick = { trackingService?.resetDistance() },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = WarnColor)
                 ) {
-                    Text("Сбросить дистанцию")
+                    Text("Сбросить дистанцию", fontWeight = FontWeight.Bold)
                 }
             }
         }
