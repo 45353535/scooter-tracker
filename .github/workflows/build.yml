@@ -29,22 +29,17 @@ jobs:
 
       - name: Build APK
         continue-on-error: true
-        shell: bash
+        id: build
         run: |
-          set -o pipefail
           ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
 
       - name: Debug
-        if: failure()
+        if: always()
         run: |
-          echo "::warning::=== ERROR LINES ==="
-          grep -A3 "e:\|FAILED\|error:\|What went wrong\|BUILD FAILED" /tmp/build.log 2>/dev/null | head -30 | while IFS= read -r line; do
-            echo "::warning::$line"
-          done
-          echo "::warning::=== LAST 20 ==="
-          tail -20 /tmp/build.log 2>/dev/null | while IFS= read -r line; do
-            echo "::warning::$line"
-          done
+          wc -l /tmp/build.log
+          grep -A2 "e:\|Error\|error:" /tmp/build.log 2>/dev/null | head -20
+          echo "---last 30---"
+          tail -30 /tmp/build.log 2>/dev/null
 
       - uses: actions/upload-artifact@v4
         if: success()
