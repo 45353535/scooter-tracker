@@ -36,10 +36,14 @@ jobs:
       - name: Debug
         if: always()
         run: |
-          wc -l /tmp/build.log
-          grep -A2 "e:\|Error\|error:" /tmp/build.log 2>/dev/null | head -20
-          echo "---last 30---"
-          tail -30 /tmp/build.log 2>/dev/null
+          echo "::warning::lines=$(wc -l < /tmp/build.log)"
+          grep -A2 "e:\|Error\|error:" /tmp/build.log 2>/dev/null | head -20 | while IFS= read -r line; do
+            echo "::warning::$line"
+          done
+          echo "::warning::=== last 30 ==="
+          tail -30 /tmp/build.log 2>/dev/null | while IFS= read -r line; do
+            echo "::warning::$line"
+          done
 
       - uses: actions/upload-artifact@v4
         if: success()
