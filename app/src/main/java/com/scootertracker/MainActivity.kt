@@ -98,10 +98,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun hasLocationPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED
-    }
+    private fun hasLocationPermission(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
     private fun requestPermissions() {
         val permissions = mutableListOf(
@@ -125,7 +123,6 @@ class MainActivity : ComponentActivity() {
 
 private val DarkBg = Color(0xFF1A1A2E)
 private val CardBg = Color(0xFF16213E)
-private val AccentBlue = Color(0xFF0F3460)
 private val SpeedColor = Color(0xFF00D2FF)
 private val DistanceColor = Color(0xFF00FF88)
 private val WarnColor = Color(0xFFFF6B6B)
