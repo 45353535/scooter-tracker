@@ -14,6 +14,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +23,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -137,14 +139,15 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private val DarkBg = Color(0xFF1A1A2E)
-private val CardBg = Color(0xFF16213E)
-private val SpeedColor = Color(0xFF00D2FF)
-private val DistanceColor = Color(0xFF00FF88)
-private val WarnColor = Color(0xFFFF6B6B)
-private val SliderTrack = Color(0xFF2D3561)
-private val SliderActive = Color(0xFF00D2FF)
-private val TextSecondary = Color(0xFF8B8FA3)
+private val DarkBg = Color(0xFF1A1A1A)
+private val CardBg = Color(0xFF2A2A2A)
+private val CyanNeon = Color(0xFF00D4FF)
+private val PinkNeon = Color(0xFFFF00AA)
+private val ButtonTeal = Color(0xFF00BCD4)
+private val SliderTrack = Color(0xFF3A3A3A)
+private val SliderActive = Color(0xFFCCCCCC)
+private val TextSecondary = Color(0xFF999999)
+private val TextWhite = Color(0xFFFFFFFF)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -177,107 +180,140 @@ fun MainScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(DarkBg, Color(0xFF0F0F23))))
+            .background(DarkBg)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp).verticalScroll(rememberScrollState()),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(52.dp))
 
-            Text("Scooter Tracker", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(
+                "Wenbox U2",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Normal,
+                color = TextWhite,
+                letterSpacing = 2.sp
+            )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Box(
-                modifier = Modifier.size(220.dp),
+                modifier = Modifier.size(200.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Canvas(modifier = Modifier.size(220.dp)) {
-                    val strokeW = 14.dp.toPx()
-                    drawArc(SliderTrack, 135f, 270f, false, style = Stroke(strokeW, cap = StrokeCap.Round))
-                    drawArc(SpeedColor, 135f, 270f * speedFraction, false, style = Stroke(strokeW, cap = StrokeCap.Round))
+                Canvas(modifier = Modifier.size(200.dp)) {
+                    val strokeW = 12.dp.toPx()
+                    val halfSize = size.minDimension / 2f
+                    val arcBrush = Brush.sweepGradient(
+                        colors = listOf(CyanNeon, PinkNeon, CyanNeon),
+                        center = Offset(halfSize, halfSize)
+                    )
+                    drawArc(
+                        SliderTrack, 135f, 270f, false,
+                        style = Stroke(strokeW, cap = StrokeCap.Round)
+                    )
+                    drawArc(
+                        arcBrush, 135f, 270f * speedFraction, false,
+                        style = Stroke(strokeW, cap = StrokeCap.Round)
+                    )
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "%.0f".format(speed), fontSize = 64.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("км/ч", fontSize = 16.sp, color = TextSecondary)
+                    Text(
+                        text = "%.0f".format(speed),
+                        fontSize = 56.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextWhite
+                    )
+                    Text("km/h", fontSize = 14.sp, color = TextSecondary)
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
             Row(verticalAlignment = Alignment.CenterVertically) {
-                val gpsTint = if (hasGpsFix && satelliteCount > 0) DistanceColor
-                              else if (satelliteCount > 0) WarnColor
+                val gpsTint = if (hasGpsFix && satelliteCount > 0) Color(0xFF00FF88)
+                              else if (satelliteCount > 0) Color(0xFFFF6B6B)
                               else Color(0xFF555555)
                 Icon(
                     painter = painterResource(com.scootertracker.R.drawable.ic_gps),
                     contentDescription = null,
                     tint = gpsTint,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    "$satelliteCount спутников",
-                    fontSize = 13.sp,
+                    "$satelliteCount Satellites",
+                    fontSize = 12.sp,
                     color = gpsTint
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    when {
-                        !isTracking -> ""
-                        hasGpsFix -> "— фиксация есть"
-                        satelliteCount > 0 -> "(нет фиксации)"
-                        else -> ""
-                    },
-                    fontSize = 13.sp, color = TextSecondary
-                )
-            }
-
-            if (speed > 0f && speed < speedThreshold) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Медленнее порога — не учитывается", fontSize = 13.sp, color = WarnColor)
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardBg)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            TrackingService.formatDistance(distance),
-                            fontSize = 28.sp, fontWeight = FontWeight.Bold, color = DistanceColor
-                        )
-                        Text("Дистанция", fontSize = 13.sp, color = TextSecondary)
-                    }
-
-                    Box(modifier = Modifier.width(1.dp).height(40.dp).background(SliderTrack))
-
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            if (isTracking) "Активен" else "Пауза",
-                            fontSize = 20.sp, fontWeight = FontWeight.Bold,
-                            color = if (isTracking) DistanceColor else WarnColor
-                        )
-                        Text("Статус", fontSize = 13.sp, color = TextSecondary)
-                    }
-                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Порог скорости", fontSize = 14.sp, color = TextSecondary)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Card(
+                    modifier = Modifier.weight(1f).height(80.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = CardBg)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                TrackingService.formatDistance(distance),
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextWhite
+                            )
+                            Text("Distance", fontSize = 12.sp, color = TextSecondary)
+                        }
+                    }
+                }
+
+                Card(
+                    modifier = Modifier.weight(1f).height(80.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = CardBg)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                if (isTracking) "▶" else "||",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextWhite
+                            )
+                            Text("Status", fontSize = 12.sp, color = TextSecondary)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Speed Threshold", fontSize = 13.sp, color = TextSecondary)
+                Text("%.0f km/h".format(speedThreshold), fontSize = 13.sp, color = TextWhite)
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
-            Text("%.0f км/ч".format(speedThreshold), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            Spacer(modifier = Modifier.height(8.dp))
 
             Slider(
                 value = speedThreshold,
@@ -285,7 +321,9 @@ fun MainScreen(
                 valueRange = 5f..30f,
                 steps = 24,
                 colors = SliderDefaults.colors(
-                    thumbColor = SliderActive, activeTrackColor = SliderActive, inactiveTrackColor = SliderTrack
+                    thumbColor = SliderActive,
+                    activeTrackColor = SliderActive,
+                    inactiveTrackColor = SliderTrack
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -294,16 +332,17 @@ fun MainScreen(
 
             Button(
                 onClick = { if (isTracking) onStopClick() else onStartClick(speedThreshold) },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(28.dp),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(26.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isTracking) WarnColor else SliderActive,
-                    contentColor = Color.White
+                    containerColor = ButtonTeal,
+                    contentColor = Color.Black
                 )
             ) {
                 Text(
-                    if (isTracking) "Остановить" else "Начать трекинг",
-                    fontSize = 18.sp, fontWeight = FontWeight.Bold
+                    if (isTracking) "Stop" else "Start Tracking",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
@@ -311,31 +350,31 @@ fun MainScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedButton(
                     onClick = onResetClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = WarnColor)
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
                 ) {
-                    Text("Сбросить дистанцию", fontWeight = FontWeight.Bold)
+                    Text("Reset Distance", fontSize = 14.sp)
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedButton(
                 onClick = { showHistory = true },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = SpeedColor)
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = TextWhite)
             ) {
-                Text("История поездок", fontWeight = FontWeight.Bold)
+                Text("Trip History", fontSize = 14.sp)
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             TextButton(
                 onClick = onExitClick,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColors(contentColor = TextSecondary)
             ) {
-                Text("Выход", fontWeight = FontWeight.Bold)
+                Text("Exit", fontSize = 13.sp, fontWeight = FontWeight.Normal)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -361,23 +400,23 @@ fun HistoryDialog(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("История поездок", fontWeight = FontWeight.Bold, color = Color.White)
+                Text("Trip History", fontWeight = FontWeight.Bold, color = TextWhite)
                 if (trips.isNotEmpty()) {
                     TextButton(
                         onClick = {
                             service?.clearTripHistory()
                             trips = emptyList()
                         },
-                        colors = ButtonDefaults.textButtonColors(contentColor = WarnColor)
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFFF6B6B))
                     ) {
-                        Text("Очистить", fontWeight = FontWeight.Bold)
+                        Text("Clear", fontWeight = FontWeight.Bold)
                     }
                 }
             }
         },
         text = {
             if (trips.isEmpty()) {
-                Text("Нет записей", color = TextSecondary)
+                Text("No records", color = TextSecondary)
             } else {
                 Column(
                     modifier = Modifier
@@ -401,11 +440,11 @@ fun HistoryDialog(
                                 TrackingService.formatDistance(trip.distanceMeters / 1000f),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = DistanceColor
+                                color = TextWhite
                             )
                         }
                         if (index < trips.size - 1) {
-                            Divider(color = SliderTrack, thickness = 0.5.dp)
+                            Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(SliderTrack))
                         }
                     }
                 }
@@ -413,7 +452,7 @@ fun HistoryDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Закрыть", color = SpeedColor, fontWeight = FontWeight.Bold)
+                Text("Close", color = CyanNeon, fontWeight = FontWeight.Bold)
             }
         }
     )
