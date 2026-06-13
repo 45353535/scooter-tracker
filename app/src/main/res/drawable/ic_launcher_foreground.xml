@@ -4,18 +4,55 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Speed arrow -->
+    <!-- Rear wheel (cyan fill) -->
     <path
-        android:pathData="M54,54L54,26M54,54L72,60"
-        android:strokeWidth="5"
+        android:fillColor="#00D2FF"
+        android:pathData="M29,80m-9,0a9,9 0 1,0 18,0a9,9 0 1,0 -18,0" />
+    <!-- Front wheel (cyan fill) -->
+    <path
+        android:fillColor="#00D2FF"
+        android:pathData="M69,80m-9,0a9,9 0 1,0 18,0a9,9 0 1,0 -18,0" />
+    <!-- Deck -->
+    <path
+        android:pathData="M26,68L76,68"
+        android:strokeWidth="4"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
-        android:strokeLineCap="round"/>
-    <!-- S letter top -->
+        android:strokeLineCap="round" />
+    <!-- Stem -->
     <path
-        android:pathData="M42,40C42,36 46,34 50,36C54,38 52,44 48,46C44,48 42,54 46,56"
-        android:strokeWidth="3.5"
+        android:pathData="M74,68L70,32"
+        android:strokeWidth="4"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
-        android:strokeLineCap="round"/>
+        android:strokeLineCap="round" />
+    <!-- Handlebar -->
+    <path
+        android:pathData="M60,32L78,32"
+        android:strokeWidth="4"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round" />
+    <!-- Seat post -->
+    <path
+        android:pathData="M36,68L36,54"
+        android:strokeWidth="3"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round" />
+    <!-- Seat -->
+    <path
+        android:pathData="M30,54L46,54"
+        android:strokeWidth="4"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round" />
+    <!-- Lightning bolt accent on stem -->
+    <path
+        android:pathData="M77,50L73,56L77,56L73,62"
+        android:strokeWidth="2.5"
+        android:strokeColor="#00D2FF"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
 </vector>
