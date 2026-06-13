@@ -355,8 +355,6 @@ fun HistoryDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = CardBg,
-        titleContentColor = Color.White,
-        textContentColor = Color.White,
         title = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -407,7 +405,7 @@ fun HistoryDialog(
                             )
                         }
                         if (index < trips.size - 1) {
-                            HorizontalDivider(color = SliderTrack, thickness = 0.5.dp)
+                            Divider(color = SliderTrack, thickness = 0.5.dp)
                         }
                     }
                 }
