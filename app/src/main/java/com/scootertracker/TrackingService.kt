@@ -251,7 +251,9 @@ class TrackingService : Service() {
         val isValid = location.accuracy <= 20f &&
                 System.currentTimeMillis() - location.time <= 5000
 
-        if (_isTracking.value && speedKm >= speedThresholdKmh && isValid) {
+        val gpsSpeedKmh = if (location.hasSpeed() && location.speed > 0f) location.speed * 3.6f else -1f
+
+        if (_isTracking.value && gpsSpeedKmh >= speedThresholdKmh && isValid) {
             lastLocation?.let { last ->
                 val delta = last.distanceTo(location)
                 if (delta > MIN_DELTA_METERS) {
