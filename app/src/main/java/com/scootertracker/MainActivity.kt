@@ -192,7 +192,7 @@ fun MainScreen(
             Spacer(modifier = Modifier.height(52.dp))
 
             Text(
-                "Wenbox U2",
+                "Scooter Tracker",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Normal,
                 color = TextWhite,
@@ -229,7 +229,7 @@ fun MainScreen(
                         fontWeight = FontWeight.Bold,
                         color = TextWhite
                     )
-                    Text("km/h", fontSize = 14.sp, color = TextSecondary)
+                    Text("км/ч", fontSize = 14.sp, color = TextSecondary)
                 }
             }
 
@@ -246,11 +246,11 @@ fun MainScreen(
                     modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    "$satelliteCount Satellites",
-                    fontSize = 12.sp,
-                    color = gpsTint
-                )
+                    Text(
+                        "$satelliteCount спутников",
+                        fontSize = 12.sp,
+                        color = gpsTint
+                    )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -275,7 +275,7 @@ fun MainScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = TextWhite
                             )
-                            Text("Distance", fontSize = 12.sp, color = TextSecondary)
+                            Text("Дистанция", fontSize = 12.sp, color = TextSecondary)
                         }
                     }
                 }
@@ -296,7 +296,7 @@ fun MainScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = TextWhite
                             )
-                            Text("Status", fontSize = 12.sp, color = TextSecondary)
+                            Text("Статус", fontSize = 12.sp, color = TextSecondary)
                         }
                     }
                 }
@@ -309,8 +309,8 @@ fun MainScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Speed Threshold", fontSize = 13.sp, color = TextSecondary)
-                Text("%.0f km/h".format(speedThreshold), fontSize = 13.sp, color = TextWhite)
+                Text("Порог скорости", fontSize = 13.sp, color = TextSecondary)
+                    Text("%.0f км/ч".format(speedThreshold), fontSize = 13.sp, color = TextWhite)
             }
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -340,7 +340,7 @@ fun MainScreen(
                 )
             ) {
                 Text(
-                    if (isTracking) "Stop" else "Start Tracking",
+                    if (isTracking) "Остановить" else "Начать трекинг",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -354,7 +354,7 @@ fun MainScreen(
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
                 ) {
-                    Text("Reset Distance", fontSize = 14.sp)
+                    Text("Сбросить", fontSize = 14.sp)
                 }
             }
 
@@ -365,7 +365,7 @@ fun MainScreen(
                 shape = RoundedCornerShape(24.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TextWhite)
             ) {
-                Text("Trip History", fontSize = 14.sp)
+                Text("История поездок", fontSize = 14.sp)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -374,7 +374,7 @@ fun MainScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColors(contentColor = TextSecondary)
             ) {
-                Text("Exit", fontSize = 13.sp, fontWeight = FontWeight.Normal)
+                Text("Выход", fontSize = 13.sp, fontWeight = FontWeight.Normal)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -400,7 +400,7 @@ fun HistoryDialog(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Trip History", fontWeight = FontWeight.Bold, color = TextWhite)
+                Text("История поездок", fontWeight = FontWeight.Bold, color = TextWhite)
                 if (trips.isNotEmpty()) {
                     TextButton(
                         onClick = {
@@ -409,14 +409,14 @@ fun HistoryDialog(
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFFF6B6B))
                     ) {
-                        Text("Clear", fontWeight = FontWeight.Bold)
+                        Text("Очистить", fontWeight = FontWeight.Bold)
                     }
                 }
             }
         },
         text = {
             if (trips.isEmpty()) {
-                Text("No records", color = TextSecondary)
+                Text("Нет записей", color = TextSecondary)
             } else {
                 Column(
                     modifier = Modifier
@@ -452,7 +452,7 @@ fun HistoryDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = CyanNeon, fontWeight = FontWeight.Bold)
+                Text("Закрыть", color = CyanNeon, fontWeight = FontWeight.Bold)
             }
         }
     )
