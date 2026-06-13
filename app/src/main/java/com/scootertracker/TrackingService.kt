@@ -21,6 +21,14 @@ import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.roundToInt
+import org.json.JSONArray
+import org.json.JSONObject
+
+data class TripRecord(
+    val startTime: Long,
+    val endTime: Long,
+    val distanceMeters: Float
+)
 
 class TrackingService : Service() {
 
@@ -38,6 +46,9 @@ class TrackingService : Service() {
     private var lastLocation: Location? = null
     private var lastSpeedCalcTime: Long = 0
     private var totalDistanceMeters = 0f
+
+    private var tripStartTime: Long = 0
+    private var segmentStartTotalMeters: Float = 0f
 
     private val _speedKmh = MutableStateFlow(0f)
     val speedKmh: StateFlow<Float> = _speedKmh
@@ -71,6 +82,7 @@ class TrackingService : Service() {
     }
 
     override fun onDestroy() {
+        saveCurrentTripSegment()
         stopGpsAndGnss()
         saveDistance()
         super.onDestroy()
@@ -83,16 +95,22 @@ class TrackingService : Service() {
                     speedThresholdKmh = it
                 }
                 _isTracking.value = true
+                tripStartTime = System.currentTimeMillis()
+                segmentStartTotalMeters = totalDistanceMeters
                 startForeground(NOTIFICATION_ID, createNotification())
             }
             ACTION_STOP -> {
                 _isTracking.value = false
                 _speedKmh.value = 0f
+                saveCurrentTripSegment()
+                tripStartTime = 0
                 saveDistance()
                 startForeground(NOTIFICATION_ID, createNotification())
             }
             ACTION_EXIT -> {
                 _isTracking.value = false
+                saveCurrentTripSegment()
+                tripStartTime = 0
                 saveDistance()
                 stopGpsAndGnss()
                 stopForeground(STOP_FOREGROUND_REMOVE)
@@ -115,6 +133,44 @@ class TrackingService : Service() {
 
     fun retryGpsIfNeeded() {
         startGpsAndGnss()
+    }
+
+    fun getTripHistory(): List<TripRecord> {
+        val json = prefs.getString(PREFS_TRIP_HISTORY, "[]") ?: "[]"
+        val list = mutableListOf<TripRecord>()
+        val arr = JSONArray(json)
+        for (i in 0 until arr.length()) {
+            val obj = arr.getJSONObject(i)
+            list.add(TripRecord(
+                obj.getLong("startTime"),
+                obj.getLong("endTime"),
+                obj.getDouble("distanceMeters").toFloat()
+            ))
+        }
+        return list
+    }
+
+    fun clearTripHistory() {
+        prefs.edit().remove(PREFS_TRIP_HISTORY).apply()
+    }
+
+    private fun saveCurrentTripSegment() {
+        if (tripStartTime <= 0) return
+        val segmentDistance = totalDistanceMeters - segmentStartTotalMeters
+        if (segmentDistance > 0f) {
+            saveTripToHistory(tripStartTime, System.currentTimeMillis(), segmentDistance)
+        }
+    }
+
+    private fun saveTripToHistory(startTime: Long, endTime: Long, distanceMeters: Float) {
+        val json = prefs.getString(PREFS_TRIP_HISTORY, "[]") ?: "[]"
+        val arr = JSONArray(json)
+        val obj = JSONObject()
+        obj.put("startTime", startTime)
+        obj.put("endTime", endTime)
+        obj.put("distanceMeters", distanceMeters.toDouble())
+        arr.put(obj)
+        prefs.edit().putString(PREFS_TRIP_HISTORY, arr.toString()).apply()
     }
 
     private fun saveDistance() {
@@ -266,6 +322,7 @@ class TrackingService : Service() {
         private const val NOTIFICATION_ID = 1
         private const val PREFS_NAME = "scooter_tracker_prefs"
         private const val PREFS_DISTANCE = "total_distance_meters"
+        private const val PREFS_TRIP_HISTORY = "trip_history"
         private const val MIN_DELTA_METERS = 2f
 
         fun formatDistance(km: Float): String {

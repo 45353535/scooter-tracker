@@ -33,6 +33,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
 
@@ -153,6 +156,7 @@ fun MainScreen(
     onExitClick: () -> Unit
 ) {
     var speedThreshold by remember { mutableStateOf(10f) }
+    var showHistory by remember { mutableStateOf(false) }
 
     val speed by trackingService?.speedKmh?.collectAsState(0f) ?: remember { mutableStateOf(0f) }
     val distance by trackingService?.distanceKm?.collectAsState(0f) ?: remember { mutableStateOf(0f) }
@@ -162,6 +166,13 @@ fun MainScreen(
 
     val maxSpeed = 60f
     val speedFraction = (speed / maxSpeed).coerceIn(0f, 1f)
+
+    if (showHistory) {
+        HistoryDialog(
+            service = trackingService,
+            onDismiss = { showHistory = false }
+        )
+    }
 
     Box(
         modifier = Modifier
@@ -309,6 +320,16 @@ fun MainScreen(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = { showHistory = true },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = SpeedColor)
+            ) {
+                Text("История поездок", fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
             TextButton(
                 onClick = onExitClick,
                 modifier = Modifier.fillMaxWidth(),
@@ -320,4 +341,82 @@ fun MainScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+}
+
+@Composable
+fun HistoryDialog(
+    service: TrackingService?,
+    onDismiss: () -> Unit
+) {
+    var trips by remember { mutableStateOf(service?.getTripHistory() ?: emptyList()) }
+    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val dateFormat = remember { SimpleDateFormat("dd.MM.yy", Locale.getDefault()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = CardBg,
+        titleContentColor = Color.White,
+        textContentColor = Color.White,
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("История поездок", fontWeight = FontWeight.Bold, color = Color.White)
+                if (trips.isNotEmpty()) {
+                    TextButton(
+                        onClick = {
+                            service?.clearTripHistory()
+                            trips = emptyList()
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = WarnColor)
+                    ) {
+                        Text("Очистить", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        },
+        text = {
+            if (trips.isEmpty()) {
+                Text("Нет записей", color = TextSecondary)
+            } else {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 360.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    trips.reversed().forEachIndexed { index, trip ->
+                        val startStr = dateFormat.format(Date(trip.startTime)) + " " + timeFormat.format(Date(trip.startTime))
+                        val endStr = timeFormat.format(Date(trip.endTime))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp)
+                        ) {
+                            Text(
+                                "$startStr → $endStr",
+                                fontSize = 13.sp,
+                                color = TextSecondary
+                            )
+                            Text(
+                                TrackingService.formatDistance(trip.distanceMeters / 1000f),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = DistanceColor
+                            )
+                        }
+                        if (index < trips.size - 1) {
+                            HorizontalDivider(color = SliderTrack, thickness = 0.5.dp)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Закрыть", color = SpeedColor, fontWeight = FontWeight.Bold)
+            }
+        }
+    )
 }
