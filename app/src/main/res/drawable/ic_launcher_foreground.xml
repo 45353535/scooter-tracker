@@ -4,54 +4,45 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Rear wheel (cyan fill) -->
+    <!-- Rear wheel -->
     <path
         android:fillColor="#00D2FF"
-        android:pathData="M29,80m-9,0a9,9 0 1,0 18,0a9,9 0 1,0 -18,0" />
-    <!-- Front wheel (cyan fill) -->
+        android:pathData="M30,82m-9,0a9,9 0 1,0 18,0a9,9 0 1,0 -18,0" />
+    <!-- Front wheel -->
     <path
         android:fillColor="#00D2FF"
-        android:pathData="M69,80m-9,0a9,9 0 1,0 18,0a9,9 0 1,0 -18,0" />
-    <!-- Deck -->
+        android:pathData="M76,82m-9,0a9,9 0 1,0 18,0a9,9 0 1,0 -18,0" />
+    <!-- Front shield (body panel) -->
     <path
-        android:pathData="M26,68L76,68"
-        android:strokeWidth="4"
-        android:strokeColor="#FFFFFF"
-        android:fillColor="@android:color/transparent"
-        android:strokeLineCap="round" />
-    <!-- Stem -->
+        android:pathData="M76,64C84,52 84,36 74,28C66,22 56,24 50,30L46,30L44,38C44,46 46,54 48,64Z"
+        android:strokeWidth="0"
+        android:fillColor="#FFFFFF" />
+    <!-- Floorboard -->
     <path
-        android:pathData="M74,68L70,32"
-        android:strokeWidth="4"
-        android:strokeColor="#FFFFFF"
-        android:fillColor="@android:color/transparent"
-        android:strokeLineCap="round" />
-    <!-- Handlebar -->
-    <path
-        android:pathData="M60,32L78,32"
+        android:pathData="M38,64L74,64"
         android:strokeWidth="4"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
         android:strokeLineCap="round" />
     <!-- Seat post -->
     <path
-        android:pathData="M36,68L36,54"
-        android:strokeWidth="3"
+        android:pathData="M34,64L34,50"
+        android:strokeWidth="3.5"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
         android:strokeLineCap="round" />
     <!-- Seat -->
     <path
-        android:pathData="M30,54L46,54"
+        android:pathData="M24,50L46,50"
         android:strokeWidth="4"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
         android:strokeLineCap="round" />
-    <!-- Lightning bolt accent on stem -->
+    <!-- Under-seat body panel -->
     <path
-        android:pathData="M77,50L73,56L77,56L73,62"
-        android:strokeWidth="2.5"
-        android:strokeColor="#00D2FF"
+        android:pathData="M34,50L34,64L46,64L46,50"
+        android:strokeWidth="3"
+        android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
