@@ -1,0 +1,70 @@
+package com.startapp.simple.bloomfilter.codec;
+
+import java.io.Serializable;
+import java.io.Writer;
+
+/* JADX INFO: loaded from: classes11.dex */
+public class StringBuilderWriter extends Writer implements Serializable, AutoCloseable {
+    private static final long serialVersionUID = -8956169446715407818L;
+    private final StringBuilder builder;
+
+    public StringBuilderWriter() {
+        this.builder = new StringBuilder();
+    }
+
+    @Override // java.io.Writer, java.io.Closeable, java.lang.AutoCloseable
+    public void close() {
+    }
+
+    @Override // java.io.Writer, java.io.Flushable
+    public void flush() {
+    }
+
+    public StringBuilder getBuilder() {
+        return this.builder;
+    }
+
+    public String toString() {
+        return this.builder.toString();
+    }
+
+    @Override // java.io.Writer
+    public void write(String str) {
+        if (str != null) {
+            this.builder.append(str);
+        }
+    }
+
+    @Override // java.io.Writer
+    public void write(char[] cArr, int i10, int i11) {
+        if (cArr != null) {
+            this.builder.append(cArr, i10, i11);
+        }
+    }
+
+    public StringBuilderWriter(int i10) {
+        this.builder = new StringBuilder(i10);
+    }
+
+    @Override // java.io.Writer, java.lang.Appendable
+    public Writer append(char c10) {
+        this.builder.append(c10);
+        return this;
+    }
+
+    public StringBuilderWriter(StringBuilder sb2) {
+        this.builder = sb2 == null ? new StringBuilder() : sb2;
+    }
+
+    @Override // java.io.Writer, java.lang.Appendable
+    public Writer append(CharSequence charSequence) {
+        this.builder.append(charSequence);
+        return this;
+    }
+
+    @Override // java.io.Writer, java.lang.Appendable
+    public Writer append(CharSequence charSequence, int i10, int i11) {
+        this.builder.append(charSequence, i10, i11);
+        return this;
+    }
+}

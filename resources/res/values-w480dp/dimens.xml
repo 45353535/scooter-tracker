@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="portrait_end_guideline">0.925</dimen>
+    <dimen name="portrait_info_end_guideline">0.95</dimen>
+    <dimen name="portrait_info_start_guideline">0.05</dimen>
+    <dimen name="portrait_start_guideline">0.075</dimen>
+    <dimen name="setting_color_option_size">44dp</dimen>
+</resources>

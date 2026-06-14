@@ -1,0 +1,5 @@
+package com.explorestack.protobuf;
+
+/* JADX INFO: loaded from: classes7.dex */
+public interface e2 extends MessageOrBuilder {
+}

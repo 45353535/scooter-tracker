@@ -1,0 +1,47 @@
+package io.bidmachine;
+
+import android.content.Context;
+import android.graphics.drawable.Drawable;
+import com.pubmatic.sdk.openwrap.core.nativead.POBCoreNativeConstants;
+import com.unity3d.ads.core.domain.HandleInvocationsFromAdViewer;
+import java.util.Map;
+import kotlin.Metadata;
+import kotlin.jvm.internal.Intrinsics;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/* JADX INFO: loaded from: classes12.dex */
+@Metadata(d1 = {"\u0000$\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010$\n\u0002\u0010\u000e\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\u0018\u0000 \r2\u00020\u0001:\u0001\rB\u0019\u0012\u0012\u0010\u0002\u001a\u000e\u0012\u0004\u0012\u00020\u0004\u0012\u0004\u0012\u00020\u00010\u0003¢\u0006\u0002\u0010\u0005J\b\u0010\b\u001a\u0004\u0018\u00010\u0004J\u0010\u0010\t\u001a\u0004\u0018\u00010\n2\u0006\u0010\u000b\u001a\u00020\fR\u001d\u0010\u0002\u001a\u000e\u0012\u0004\u0012\u00020\u0004\u0012\u0004\u0012\u00020\u00010\u0003¢\u0006\b\n\u0000\u001a\u0004\b\u0006\u0010\u0007¨\u0006\u000e"}, d2 = {"Lio/bidmachine/RendererConfiguration;", "", HandleInvocationsFromAdViewer.KEY_EXTRAS, "", "", "(Ljava/util/Map;)V", "getExtras", "()Ljava/util/Map;", "getWatermark", "getWatermarkDrawable", "Landroid/graphics/drawable/Drawable;", POBCoreNativeConstants.NATIVE_CONTEXT, "Landroid/content/Context;", com.taurusx.tax.f.y.f66058y, "bidmachine-android-sdk_bh_3_5_0"}, k = 1, mv = {1, 7, 1}, xi = 48)
+public final class RendererConfiguration {
+
+    @NotNull
+    private static final String GOOGLE_WATERMARK = "google_watermark";
+
+    @NotNull
+    private final Map<String, Object> extras;
+
+    public RendererConfiguration(@NotNull Map<String, ? extends Object> extras) {
+        Intrinsics.checkNotNullParameter(extras, "extras");
+        this.extras = extras;
+    }
+
+    @NotNull
+    public final Map<String, Object> getExtras() {
+        return this.extras;
+    }
+
+    @Nullable
+    public final String getWatermark() {
+        Object obj = this.extras.get(GOOGLE_WATERMARK);
+        if (obj instanceof String) {
+            return (String) obj;
+        }
+        return null;
+    }
+
+    @Nullable
+    public final Drawable getWatermarkDrawable(@NotNull Context context) {
+        Intrinsics.checkNotNullParameter(context, "context");
+        return jd.n.f85823a.a(context, getWatermark());
+    }
+}

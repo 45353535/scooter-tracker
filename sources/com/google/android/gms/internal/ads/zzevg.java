@@ -1,0 +1,31 @@
+package com.google.android.gms.internal.ads;
+
+import androidx.annotation.Nullable;
+import com.google.android.gms.common.util.Strings;
+import com.google.common.util.concurrent.ListenableFuture;
+
+/* JADX INFO: loaded from: classes8.dex */
+public final class zzevg implements zzfax {
+
+    @Nullable
+    private final zzffr zza;
+
+    zzevg(@Nullable zzffr zzffrVar) {
+        this.zza = zzffrVar;
+    }
+
+    @Override // com.google.android.gms.internal.ads.zzfax
+    public final ListenableFuture zza() {
+        zzffr zzffrVar = this.zza;
+        if (zzffrVar == null) {
+            return zzgzo.zza(new zzevf(null));
+        }
+        String strZza = zzffrVar.zza();
+        return Strings.isEmptyOrWhitespace(strZza) ? zzgzo.zza(new zzevf(null)) : zzgzo.zza(new zzevf(strZza));
+    }
+
+    @Override // com.google.android.gms.internal.ads.zzfax
+    public final int zzb() {
+        return 15;
+    }
+}

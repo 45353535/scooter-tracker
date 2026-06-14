@@ -1,0 +1,40 @@
+package com.google.android.material.shape;
+
+import android.graphics.RectF;
+import androidx.annotation.NonNull;
+import java.util.Arrays;
+
+/* JADX INFO: loaded from: classes9.dex */
+public final class AbsoluteCornerSize implements CornerSize {
+
+    /* JADX INFO: renamed from: a, reason: collision with root package name */
+    private final float f27458a;
+
+    public AbsoluteCornerSize(float f10) {
+        this.f27458a = f10;
+    }
+
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        return (obj instanceof AbsoluteCornerSize) && this.f27458a == ((AbsoluteCornerSize) obj).f27458a;
+    }
+
+    @Override // com.google.android.material.shape.CornerSize
+    public float getCornerSize(@NonNull RectF rectF) {
+        return this.f27458a;
+    }
+
+    public int hashCode() {
+        return Arrays.hashCode(new Object[]{Float.valueOf(this.f27458a)});
+    }
+
+    public String toString() {
+        return getCornerSize() + "px";
+    }
+
+    public float getCornerSize() {
+        return this.f27458a;
+    }
+}

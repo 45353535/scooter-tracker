@@ -1,0 +1,8 @@
+package io.appmetrica.analytics.impl;
+
+/* JADX INFO: loaded from: classes12.dex */
+public interface Xi {
+    boolean a();
+
+    void b();
+}

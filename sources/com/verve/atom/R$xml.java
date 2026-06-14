@@ -1,0 +1,5 @@
+package com.verve.atom;
+
+/* JADX INFO: loaded from: classes11.dex */
+public final class R$xml {
+}

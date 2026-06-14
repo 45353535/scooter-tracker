@@ -1,0 +1,355 @@
+package org.bidon.vungle.impl;
+
+import android.app.Activity;
+import com.vungle.ads.Ad;
+import com.vungle.ads.AdConfig;
+import com.vungle.ads.BaseAd;
+import com.vungle.ads.BaseAdListener;
+import com.vungle.ads.FullscreenAd;
+import com.vungle.ads.InterstitialAd;
+import com.vungle.ads.VungleError;
+import kotlin.jvm.functions.Function1;
+import kotlin.jvm.internal.Intrinsics;
+import kotlinx.coroutines.flow.SharedFlow;
+import org.bidon.sdk.adapter.AdAuctionParamSource;
+import org.bidon.sdk.adapter.AdEvent;
+import org.bidon.sdk.adapter.AdSource;
+import org.bidon.sdk.adapter.DemandAd;
+import org.bidon.sdk.adapter.DemandId;
+import org.bidon.sdk.adapter.impl.AdEventFlow;
+import org.bidon.sdk.adapter.impl.AdEventFlowImpl;
+import org.bidon.sdk.ads.Ad;
+import org.bidon.sdk.auction.models.AdUnit;
+import org.bidon.sdk.auction.models.TokenInfo;
+import org.bidon.sdk.config.BidonError;
+import org.bidon.sdk.logs.analytic.AdValue;
+import org.bidon.sdk.logs.analytic.Precision;
+import org.bidon.sdk.logs.logging.impl.LogExtKt;
+import org.bidon.sdk.stats.StatisticsCollector;
+import org.bidon.sdk.stats.impl.StatisticsCollectorImpl;
+import org.bidon.sdk.stats.models.BidStat;
+import org.bidon.sdk.stats.models.BidType;
+import org.bidon.sdk.stats.models.RoundStatus;
+
+/* JADX INFO: loaded from: classes4.dex */
+public final class g implements AdSource.Interstitial, AdEventFlow, StatisticsCollector {
+
+    /* JADX INFO: renamed from: a, reason: collision with root package name */
+    private final /* synthetic */ AdEventFlowImpl f97850a = new AdEventFlowImpl();
+
+    /* JADX INFO: renamed from: b, reason: collision with root package name */
+    private final /* synthetic */ StatisticsCollectorImpl f97851b = new StatisticsCollectorImpl();
+
+    /* JADX INFO: renamed from: c, reason: collision with root package name */
+    private InterstitialAd f97852c;
+
+    public static final class a implements BaseAdListener {
+
+        /* JADX INFO: renamed from: b, reason: collision with root package name */
+        final /* synthetic */ e f97854b;
+
+        a(e eVar) {
+            this.f97854b = eVar;
+        }
+
+        @Override // com.vungle.ads.BaseAdListener
+        public void onAdClicked(BaseAd baseAd) {
+            Intrinsics.checkNotNullParameter(baseAd, "baseAd");
+            LogExtKt.logInfo("VungleInterstitialImpl", "onAdClicked: " + this);
+            Ad ad2 = g.this.getAd();
+            if (ad2 == null) {
+                return;
+            }
+            g.this.emitEvent(new AdEvent.Clicked(ad2));
+        }
+
+        @Override // com.vungle.ads.BaseAdListener
+        public void onAdEnd(BaseAd baseAd) {
+            Intrinsics.checkNotNullParameter(baseAd, "baseAd");
+            LogExtKt.logInfo("VungleInterstitialImpl", "onAdEnd: " + this);
+            Ad ad2 = g.this.getAd();
+            if (ad2 == null) {
+                return;
+            }
+            g.this.emitEvent(new AdEvent.Closed(ad2));
+        }
+
+        @Override // com.vungle.ads.BaseAdListener
+        public void onAdFailedToLoad(BaseAd baseAd, VungleError adError) {
+            Intrinsics.checkNotNullParameter(baseAd, "baseAd");
+            Intrinsics.checkNotNullParameter(adError, "adError");
+            LogExtKt.logError("VungleInterstitialImpl", "onAdFailedToLoad placementId=" + baseAd.getPlacementId() + ". " + this, adError);
+            g.this.emitEvent(new AdEvent.LoadFailed(org.bidon.vungle.ext.a.a(adError)));
+        }
+
+        @Override // com.vungle.ads.BaseAdListener
+        public void onAdFailedToPlay(BaseAd baseAd, VungleError adError) {
+            Intrinsics.checkNotNullParameter(baseAd, "baseAd");
+            Intrinsics.checkNotNullParameter(adError, "adError");
+            LogExtKt.logError("VungleInterstitialImpl", "onAdFailedToPlay: " + this, adError);
+            g.this.emitEvent(new AdEvent.ShowFailed(org.bidon.vungle.ext.a.a(adError)));
+        }
+
+        @Override // com.vungle.ads.BaseAdListener
+        public void onAdImpression(BaseAd baseAd) {
+            Intrinsics.checkNotNullParameter(baseAd, "baseAd");
+            LogExtKt.logInfo("VungleInterstitialImpl", "onAdImpression: " + this);
+            Ad ad2 = g.this.getAd();
+            if (ad2 == null) {
+                return;
+            }
+            g.this.emitEvent(new AdEvent.PaidRevenue(ad2, new AdValue(this.f97854b.getPrice() / 1000.0d, "USD", Precision.Precise)));
+        }
+
+        @Override // com.vungle.ads.BaseAdListener
+        public void onAdLeftApplication(BaseAd baseAd) {
+            Intrinsics.checkNotNullParameter(baseAd, "baseAd");
+            LogExtKt.logInfo("VungleInterstitialImpl", "onAdLeftApplication: " + this);
+        }
+
+        @Override // com.vungle.ads.BaseAdListener
+        public void onAdLoaded(BaseAd baseAd) {
+            Intrinsics.checkNotNullParameter(baseAd, "baseAd");
+            LogExtKt.logInfo("VungleInterstitialImpl", "onAdLoaded placementId=" + baseAd.getPlacementId() + ". " + this);
+            Ad ad2 = g.this.getAd();
+            if (ad2 == null) {
+                return;
+            }
+            g.this.emitEvent(new AdEvent.Fill(ad2));
+        }
+
+        @Override // com.vungle.ads.BaseAdListener
+        public void onAdStart(BaseAd baseAd) {
+            Intrinsics.checkNotNullParameter(baseAd, "baseAd");
+            LogExtKt.logInfo("VungleInterstitialImpl", "onAdStart: " + this);
+            Ad ad2 = g.this.getAd();
+            if (ad2 == null) {
+                return;
+            }
+            g.this.emitEvent(new AdEvent.Shown(ad2));
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public static final e b(AdAuctionParamSource adAuctionParamSource, AdAuctionParamSource auctionParamsScope) {
+        Intrinsics.checkNotNullParameter(auctionParamsScope, "$this$auctionParamsScope");
+        return new e(adAuctionParamSource.getActivity(), auctionParamsScope.getAdUnit());
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void addAuctionConfigurationId(long j10) {
+        this.f97851b.addAuctionConfigurationId(j10);
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void addAuctionConfigurationUid(String auctionConfigurationUid) {
+        Intrinsics.checkNotNullParameter(auctionConfigurationUid, "auctionConfigurationUid");
+        this.f97851b.addAuctionConfigurationUid(auctionConfigurationUid);
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void addDemandId(DemandId demandId) {
+        Intrinsics.checkNotNullParameter(demandId, "demandId");
+        this.f97851b.addDemandId(demandId);
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void addExternalWinNotificationsEnabled(boolean z10) {
+        this.f97851b.addExternalWinNotificationsEnabled(z10);
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void addRoundInfo(String auctionId, DemandAd demandAd, double d10) {
+        Intrinsics.checkNotNullParameter(auctionId, "auctionId");
+        Intrinsics.checkNotNullParameter(demandAd, "demandAd");
+        this.f97851b.addRoundInfo(auctionId, demandAd, d10);
+    }
+
+    @Override // org.bidon.sdk.adapter.AdSource
+    /* JADX INFO: renamed from: c, reason: merged with bridge method [inline-methods] */
+    public void load(e adParams) {
+        Intrinsics.checkNotNullParameter(adParams, "adParams");
+        LogExtKt.logInfo("VungleInterstitialImpl", "Starting with " + adParams + ": " + this);
+        String strC = adParams.c();
+        if (strC == null) {
+            emitEvent(new AdEvent.LoadFailed(new BidonError.IncorrectAdUnit(getDemandId(), "placementId")));
+            return;
+        }
+        InterstitialAd interstitialAd = new InterstitialAd(adParams.a(), strC, new AdConfig());
+        this.f97852c = interstitialAd;
+        interstitialAd.setAdListener(new a(adParams));
+        if (adParams.getAdUnit().getBidType() != BidType.RTB) {
+            Ad.DefaultImpls.load$default(interstitialAd, null, 1, null);
+            return;
+        }
+        String strB = adParams.b();
+        if (strB == null) {
+            emitEvent(new AdEvent.LoadFailed(new BidonError.IncorrectAdUnit(getDemandId(), "payload")));
+        } else {
+            interstitialAd.load(strB);
+        }
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public boolean canSendWinLoseNotifications() {
+        return this.f97851b.canSendWinLoseNotifications();
+    }
+
+    @Override // org.bidon.sdk.adapter.AdSource
+    public void destroy() {
+        InterstitialAd interstitialAd = this.f97852c;
+        if (interstitialAd != null) {
+            interstitialAd.setAdListener(null);
+        }
+        this.f97852c = null;
+    }
+
+    @Override // org.bidon.sdk.adapter.impl.AdEventFlow
+    public void emitEvent(AdEvent event) {
+        Intrinsics.checkNotNullParameter(event, "event");
+        this.f97850a.emitEvent(event);
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public org.bidon.sdk.ads.Ad getAd() {
+        return this.f97851b.getAd();
+    }
+
+    @Override // org.bidon.sdk.adapter.impl.AdEventFlow
+    public SharedFlow getAdEvent() {
+        return this.f97850a.getAdEvent();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public String getAuctionId() {
+        return this.f97851b.getAuctionId();
+    }
+
+    @Override // org.bidon.sdk.adapter.AdSource
+    /* JADX INFO: renamed from: getAuctionParam-IoAF18A */
+    public Object mo4425getAuctionParamIoAF18A(final AdAuctionParamSource auctionParamsScope) {
+        Intrinsics.checkNotNullParameter(auctionParamsScope, "auctionParamsScope");
+        return auctionParamsScope.m8670invokeIoAF18A(new Function1() { // from class: org.bidon.vungle.impl.f
+            @Override // kotlin.jvm.functions.Function1
+            public final Object invoke(Object obj) {
+                return g.b(auctionParamsScope, (AdAuctionParamSource) obj);
+            }
+        });
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public DemandAd getDemandAd() {
+        return this.f97851b.getDemandAd();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public DemandId getDemandId() {
+        return this.f97851b.getDemandId();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    /* JADX INFO: renamed from: getStats */
+    public BidStat getStat() {
+        return this.f97851b.getStat();
+    }
+
+    @Override // org.bidon.sdk.adapter.AdSource
+    /* JADX INFO: renamed from: isAdReadyToShow */
+    public boolean getIsAdReadyToShow() {
+        InterstitialAd interstitialAd = this.f97852c;
+        return interstitialAd != null && interstitialAd.canPlayAd().booleanValue();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void markBelowPricefloor() {
+        this.f97851b.markBelowPricefloor();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void markFillFinished(RoundStatus roundStatus, Double d10) {
+        Intrinsics.checkNotNullParameter(roundStatus, "roundStatus");
+        this.f97851b.markFillFinished(roundStatus, d10);
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void markFillStarted(AdUnit adUnit, Double d10) {
+        Intrinsics.checkNotNullParameter(adUnit, "adUnit");
+        this.f97851b.markFillStarted(adUnit, d10);
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void markLoss() {
+        this.f97851b.markLoss();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void markWin() {
+        this.f97851b.markWin();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void markWinLoseNotificationsSent() {
+        this.f97851b.markWinLoseNotificationsSent();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void sendClickImpression() {
+        this.f97851b.sendClickImpression();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void sendLoss(String winnerDemandId, double d10) {
+        Intrinsics.checkNotNullParameter(winnerDemandId, "winnerDemandId");
+        this.f97851b.sendLoss(winnerDemandId, d10);
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void sendRewardImpression() {
+        this.f97851b.sendRewardImpression();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void sendShowImpression() {
+        this.f97851b.sendShowImpression();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void sendWin() {
+        this.f97851b.sendWin();
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void setDsp(String str) {
+        this.f97851b.setDsp(str);
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void setPrice(double d10) {
+        this.f97851b.setPrice(d10);
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void setStatisticAdType(StatisticsCollector.AdType adType) {
+        Intrinsics.checkNotNullParameter(adType, "adType");
+        this.f97851b.setStatisticAdType(adType);
+    }
+
+    @Override // org.bidon.sdk.stats.StatisticsCollector
+    public void setTokenInfo(TokenInfo tokenInfo) {
+        Intrinsics.checkNotNullParameter(tokenInfo, "tokenInfo");
+        this.f97851b.setTokenInfo(tokenInfo);
+    }
+
+    @Override // org.bidon.sdk.adapter.AdSource.Interstitial
+    public void show(Activity activity) {
+        Intrinsics.checkNotNullParameter(activity, "activity");
+        if (!getIsAdReadyToShow()) {
+            emitEvent(new AdEvent.ShowFailed(BidonError.AdNotReady.INSTANCE));
+            return;
+        }
+        InterstitialAd interstitialAd = this.f97852c;
+        if (interstitialAd != null) {
+            FullscreenAd.DefaultImpls.play$default(interstitialAd, null, 1, null);
+        }
+    }
+}

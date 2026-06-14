@@ -1,0 +1,20 @@
+package com.google.android.gms.internal.ads;
+
+import android.app.Activity;
+import android.app.Application;
+import j$.util.Objects;
+
+/* JADX INFO: loaded from: classes8.dex */
+final class zzbdq implements zzbdr {
+    final /* synthetic */ Activity zza;
+
+    zzbdq(zzbds zzbdsVar, Activity activity) {
+        this.zza = activity;
+        Objects.requireNonNull(zzbdsVar);
+    }
+
+    @Override // com.google.android.gms.internal.ads.zzbdr
+    public final void zza(Application.ActivityLifecycleCallbacks activityLifecycleCallbacks) {
+        activityLifecycleCallbacks.onActivityDestroyed(this.zza);
+    }
+}

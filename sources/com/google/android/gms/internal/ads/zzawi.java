@@ -1,0 +1,12 @@
+package com.google.android.gms.internal.ads;
+
+/* JADX INFO: loaded from: classes8.dex */
+public final class zzawi extends zzibl implements zzidd {
+    private zzawi() {
+        throw null;
+    }
+
+    /* synthetic */ zzawi(byte[] bArr) {
+        super(zzawj.zzc);
+    }
+}

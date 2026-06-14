@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/inter_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:gravity="top|center_horizontal"
+        android:id="@+id/inter_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <ViewStub
+        android:id="@+id/bigo_ad_native_ad_view_stub"
+        android:layout="@null"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <LinearLayout
+        android:gravity="center_vertical"
+        android:layout_gravity="end|top"
+        android:orientation="horizontal"
+        android:id="@+id/bigo_ad_close_progress_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp">
+        <sg.bigo.ads.ad.interstitial.AdCountDownButton
+            android:id="@+id/inter_btn_close"
+            android:layout_width="wrap_content"
+            android:layout_height="29dp"
+            app:bigo_ad_customLayout="@layout/bigo_ad_item_inter_default_countdown_bg"/>
+    </LinearLayout>
+</FrameLayout>

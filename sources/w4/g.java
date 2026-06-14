@@ -1,0 +1,35 @@
+package w4;
+
+/* JADX INFO: loaded from: classes10.dex */
+public enum g {
+    GENERAL,
+    UNITS,
+    THEME,
+    WARNING,
+    HUD,
+    OTHER,
+    ADS,
+    SCREEN,
+    CLOCK,
+    SAVE,
+    PAUSE,
+    CUSTOMISE,
+    UNIT_SPEED,
+    RESOLUTION_SPEED,
+    UNIT_DISTANCE,
+    UNIT_ODOMETER,
+    SPEED_LIMIT,
+    SOUND,
+    VIBRATE,
+    KEEP_ALERT,
+    HUD_CLOCK,
+    HUD_DISTANCE,
+    HUD_BATTERY,
+    BATTERY_OPTIMIZATION,
+    MORE_APP,
+    RATE,
+    PRIVACY,
+    FEEDBACK,
+    VERSION,
+    COLOR
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="history_map_size">300dp</dimen>
+    <dimen name="landscape_action_bottom_margin">24dp</dimen>
+    <dimen name="landscape_action_size">56dp</dimen>
+    <dimen name="landscape_info_between_vertical_margin">32dp</dimen>
+    <dimen name="landscape_map_bottom_margin">12dp</dimen>
+</resources>

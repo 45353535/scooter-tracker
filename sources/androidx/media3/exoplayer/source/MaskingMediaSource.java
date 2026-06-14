@@ -1,0 +1,251 @@
+package androidx.media3.exoplayer.source;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+import androidx.media3.common.AdPlaybackState;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.Timeline;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.common.util.Util;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.upstream.Allocator;
+
+/* JADX INFO: loaded from: classes5.dex */
+@UnstableApi
+public final class MaskingMediaSource extends WrappingMediaSource {
+    private boolean hasRealTimeline;
+    private boolean hasStartedPreparing;
+    private boolean isPrepared;
+    private final Timeline.Period period;
+    private MaskingTimeline timeline;
+
+    @Nullable
+    private MaskingMediaPeriod unpreparedMaskingMediaPeriod;
+    private final boolean useLazyPreparation;
+    private final Timeline.Window window;
+
+    private static final class MaskingTimeline extends ForwardingTimeline {
+        public static final Object MASKING_EXTERNAL_PERIOD_UID = new Object();
+
+        @Nullable
+        private final Object replacedInternalPeriodUid;
+
+        @Nullable
+        private final Object replacedInternalWindowUid;
+
+        private MaskingTimeline(Timeline timeline, @Nullable Object obj, @Nullable Object obj2) {
+            super(timeline);
+            this.replacedInternalWindowUid = obj;
+            this.replacedInternalPeriodUid = obj2;
+        }
+
+        public static MaskingTimeline createWithPlaceholderTimeline(MediaItem mediaItem) {
+            return new MaskingTimeline(new PlaceholderTimeline(mediaItem), Timeline.Window.SINGLE_WINDOW_UID, MASKING_EXTERNAL_PERIOD_UID);
+        }
+
+        public static MaskingTimeline createWithRealTimeline(Timeline timeline, @Nullable Object obj, @Nullable Object obj2) {
+            return new MaskingTimeline(timeline, obj, obj2);
+        }
+
+        public MaskingTimeline cloneWithUpdatedTimeline(Timeline timeline) {
+            return new MaskingTimeline(timeline, this.replacedInternalWindowUid, this.replacedInternalPeriodUid);
+        }
+
+        @Override // androidx.media3.exoplayer.source.ForwardingTimeline, androidx.media3.common.Timeline
+        public int getIndexOfPeriod(Object obj) {
+            Object obj2;
+            Timeline timeline = this.timeline;
+            if (MASKING_EXTERNAL_PERIOD_UID.equals(obj) && (obj2 = this.replacedInternalPeriodUid) != null) {
+                obj = obj2;
+            }
+            return timeline.getIndexOfPeriod(obj);
+        }
+
+        @Override // androidx.media3.exoplayer.source.ForwardingTimeline, androidx.media3.common.Timeline
+        public Timeline.Period getPeriod(int i10, Timeline.Period period, boolean z10) {
+            this.timeline.getPeriod(i10, period, z10);
+            if (Util.areEqual(period.uid, this.replacedInternalPeriodUid) && z10) {
+                period.uid = MASKING_EXTERNAL_PERIOD_UID;
+            }
+            return period;
+        }
+
+        @Override // androidx.media3.exoplayer.source.ForwardingTimeline, androidx.media3.common.Timeline
+        public Object getUidOfPeriod(int i10) {
+            Object uidOfPeriod = this.timeline.getUidOfPeriod(i10);
+            return Util.areEqual(uidOfPeriod, this.replacedInternalPeriodUid) ? MASKING_EXTERNAL_PERIOD_UID : uidOfPeriod;
+        }
+
+        @Override // androidx.media3.exoplayer.source.ForwardingTimeline, androidx.media3.common.Timeline
+        public Timeline.Window getWindow(int i10, Timeline.Window window, long j10) {
+            this.timeline.getWindow(i10, window, j10);
+            if (Util.areEqual(window.uid, this.replacedInternalWindowUid)) {
+                window.uid = Timeline.Window.SINGLE_WINDOW_UID;
+            }
+            return window;
+        }
+    }
+
+    @VisibleForTesting
+    public static final class PlaceholderTimeline extends Timeline {
+        private final MediaItem mediaItem;
+
+        public PlaceholderTimeline(MediaItem mediaItem) {
+            this.mediaItem = mediaItem;
+        }
+
+        @Override // androidx.media3.common.Timeline
+        public int getIndexOfPeriod(Object obj) {
+            return obj == MaskingTimeline.MASKING_EXTERNAL_PERIOD_UID ? 0 : -1;
+        }
+
+        @Override // androidx.media3.common.Timeline
+        public Timeline.Period getPeriod(int i10, Timeline.Period period, boolean z10) {
+            period.set(z10 ? 0 : null, z10 ? MaskingTimeline.MASKING_EXTERNAL_PERIOD_UID : null, 0, -9223372036854775807L, 0L, AdPlaybackState.NONE, true);
+            return period;
+        }
+
+        @Override // androidx.media3.common.Timeline
+        public int getPeriodCount() {
+            return 1;
+        }
+
+        @Override // androidx.media3.common.Timeline
+        public Object getUidOfPeriod(int i10) {
+            return MaskingTimeline.MASKING_EXTERNAL_PERIOD_UID;
+        }
+
+        @Override // androidx.media3.common.Timeline
+        public Timeline.Window getWindow(int i10, Timeline.Window window, long j10) {
+            window.set(Timeline.Window.SINGLE_WINDOW_UID, this.mediaItem, null, -9223372036854775807L, -9223372036854775807L, -9223372036854775807L, false, true, null, 0L, -9223372036854775807L, 0, 0, 0L);
+            window.isPlaceholder = true;
+            return window;
+        }
+
+        @Override // androidx.media3.common.Timeline
+        public int getWindowCount() {
+            return 1;
+        }
+    }
+
+    public MaskingMediaSource(MediaSource mediaSource, boolean z10) {
+        super(mediaSource);
+        this.useLazyPreparation = z10 && mediaSource.isSingleWindow();
+        this.window = new Timeline.Window();
+        this.period = new Timeline.Period();
+        Timeline initialTimeline = mediaSource.getInitialTimeline();
+        if (initialTimeline == null) {
+            this.timeline = MaskingTimeline.createWithPlaceholderTimeline(mediaSource.getMediaItem());
+        } else {
+            this.timeline = MaskingTimeline.createWithRealTimeline(initialTimeline, null, null);
+            this.hasRealTimeline = true;
+        }
+    }
+
+    private Object getExternalPeriodUid(Object obj) {
+        return (this.timeline.replacedInternalPeriodUid == null || !this.timeline.replacedInternalPeriodUid.equals(obj)) ? obj : MaskingTimeline.MASKING_EXTERNAL_PERIOD_UID;
+    }
+
+    private Object getInternalPeriodUid(Object obj) {
+        return (this.timeline.replacedInternalPeriodUid == null || !obj.equals(MaskingTimeline.MASKING_EXTERNAL_PERIOD_UID)) ? obj : this.timeline.replacedInternalPeriodUid;
+    }
+
+    private boolean setPreparePositionOverrideToUnpreparedMaskingPeriod(long j10) {
+        MaskingMediaPeriod maskingMediaPeriod = this.unpreparedMaskingMediaPeriod;
+        int indexOfPeriod = this.timeline.getIndexOfPeriod(maskingMediaPeriod.f5130id.periodUid);
+        if (indexOfPeriod == -1) {
+            return false;
+        }
+        long j11 = this.timeline.getPeriod(indexOfPeriod, this.period).durationUs;
+        if (j11 != -9223372036854775807L && j10 >= j11) {
+            j10 = Math.max(0L, j11 - 1);
+        }
+        maskingMediaPeriod.overridePreparePositionUs(j10);
+        return true;
+    }
+
+    @Override // androidx.media3.exoplayer.source.WrappingMediaSource, androidx.media3.exoplayer.source.BaseMediaSource, androidx.media3.exoplayer.source.MediaSource
+    public boolean canUpdateMediaItem(MediaItem mediaItem) {
+        return this.mediaSource.canUpdateMediaItem(mediaItem);
+    }
+
+    @Override // androidx.media3.exoplayer.source.WrappingMediaSource
+    @Nullable
+    protected MediaSource.MediaPeriodId getMediaPeriodIdForChildMediaPeriodId(MediaSource.MediaPeriodId mediaPeriodId) {
+        return mediaPeriodId.copyWithPeriodUid(getExternalPeriodUid(mediaPeriodId.periodUid));
+    }
+
+    public Timeline getTimeline() {
+        return this.timeline;
+    }
+
+    @Override // androidx.media3.exoplayer.source.CompositeMediaSource, androidx.media3.exoplayer.source.MediaSource
+    public void maybeThrowSourceInfoRefreshError() {
+    }
+
+    /* JADX WARN: Removed duplicated region for block: B:19:0x0074  */
+    /* JADX WARN: Removed duplicated region for block: B:32:0x00be  */
+    /* JADX WARN: Removed duplicated region for block: B:34:? A[RETURN, SYNTHETIC] */
+    @Override // androidx.media3.exoplayer.source.WrappingMediaSource
+    /*
+        Code decompiled incorrectly, please refer to instructions dump.
+        To view partially-correct code enable 'Show inconsistent code' option in preferences
+    */
+    protected void onChildSourceInfoRefreshed(androidx.media3.common.Timeline r15) {
+        /*
+            Method dump skipped, instruction units count: 202
+            To view this dump change 'Code comments level' option to 'DEBUG'
+        */
+        throw new UnsupportedOperationException("Method not decompiled: androidx.media3.exoplayer.source.MaskingMediaSource.onChildSourceInfoRefreshed(androidx.media3.common.Timeline):void");
+    }
+
+    @Override // androidx.media3.exoplayer.source.WrappingMediaSource
+    public void prepareSourceInternal() {
+        if (this.useLazyPreparation) {
+            return;
+        }
+        this.hasStartedPreparing = true;
+        prepareChildSource();
+    }
+
+    @Override // androidx.media3.exoplayer.source.WrappingMediaSource, androidx.media3.exoplayer.source.MediaSource
+    public void releasePeriod(MediaPeriod mediaPeriod) {
+        ((MaskingMediaPeriod) mediaPeriod).releasePeriod();
+        if (mediaPeriod == this.unpreparedMaskingMediaPeriod) {
+            this.unpreparedMaskingMediaPeriod = null;
+        }
+    }
+
+    @Override // androidx.media3.exoplayer.source.CompositeMediaSource, androidx.media3.exoplayer.source.BaseMediaSource
+    public void releaseSourceInternal() {
+        this.isPrepared = false;
+        this.hasStartedPreparing = false;
+        super.releaseSourceInternal();
+    }
+
+    @Override // androidx.media3.exoplayer.source.WrappingMediaSource, androidx.media3.exoplayer.source.BaseMediaSource, androidx.media3.exoplayer.source.MediaSource
+    public void updateMediaItem(MediaItem mediaItem) {
+        if (this.hasRealTimeline) {
+            this.timeline = this.timeline.cloneWithUpdatedTimeline(new TimelineWithUpdatedMediaItem(this.timeline.timeline, mediaItem));
+        } else {
+            this.timeline = MaskingTimeline.createWithPlaceholderTimeline(mediaItem);
+        }
+        this.mediaSource.updateMediaItem(mediaItem);
+    }
+
+    @Override // androidx.media3.exoplayer.source.WrappingMediaSource, androidx.media3.exoplayer.source.MediaSource
+    public MaskingMediaPeriod createPeriod(MediaSource.MediaPeriodId mediaPeriodId, Allocator allocator, long j10) {
+        MaskingMediaPeriod maskingMediaPeriod = new MaskingMediaPeriod(mediaPeriodId, allocator, j10);
+        maskingMediaPeriod.setMediaSource(this.mediaSource);
+        if (this.isPrepared) {
+            maskingMediaPeriod.createPeriod(mediaPeriodId.copyWithPeriodUid(getInternalPeriodUid(mediaPeriodId.periodUid)));
+            return maskingMediaPeriod;
+        }
+        this.unpreparedMaskingMediaPeriod = maskingMediaPeriod;
+        if (!this.hasStartedPreparing) {
+            this.hasStartedPreparing = true;
+            prepareChildSource();
+        }
+        return maskingMediaPeriod;
+    }
+}

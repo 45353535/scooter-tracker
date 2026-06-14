@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="abc_alert_dialog_button_bar_height">54dp</dimen>
+    <dimen name="landscape_action_bottom_margin">32dp</dimen>
+    <dimen name="landscape_action_size">64dp</dimen>
+    <dimen name="landscape_info_between_vertical_margin">40dp</dimen>
+    <dimen name="landscape_map_bottom_margin">16dp</dimen>
+</resources>

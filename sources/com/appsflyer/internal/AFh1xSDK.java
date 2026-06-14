@@ -1,0 +1,9 @@
+package com.appsflyer.internal;
+
+/* JADX INFO: loaded from: classes6.dex */
+public enum AFh1xSDK {
+    onReceive,
+    logSession,
+    logEvent,
+    setCustomerIdAndLogSession
+}

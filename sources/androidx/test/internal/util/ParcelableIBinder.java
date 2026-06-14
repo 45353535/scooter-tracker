@@ -1,0 +1,47 @@
+package androidx.test.internal.util;
+
+import android.os.IBinder;
+import android.os.Parcel;
+import android.os.Parcelable;
+import androidx.annotation.RestrictTo;
+
+/* JADX INFO: loaded from: classes5.dex */
+@RestrictTo({RestrictTo.Scope.LIBRARY_GROUP})
+public class ParcelableIBinder implements Parcelable {
+    public static final Parcelable.Creator<ParcelableIBinder> CREATOR = new Parcelable.Creator<ParcelableIBinder>() { // from class: androidx.test.internal.util.ParcelableIBinder.1
+        /* JADX WARN: Can't rename method to resolve collision */
+        @Override // android.os.Parcelable.Creator
+        public ParcelableIBinder createFromParcel(Parcel parcel) {
+            return new ParcelableIBinder(parcel);
+        }
+
+        /* JADX WARN: Can't rename method to resolve collision */
+        @Override // android.os.Parcelable.Creator
+        public ParcelableIBinder[] newArray(int i10) {
+            return new ParcelableIBinder[i10];
+        }
+    };
+    private final IBinder iBinder;
+
+    public ParcelableIBinder(IBinder iBinder) {
+        this.iBinder = (IBinder) Checks.checkNotNull(iBinder);
+    }
+
+    @Override // android.os.Parcelable
+    public int describeContents() {
+        return 0;
+    }
+
+    public IBinder getIBinder() {
+        return this.iBinder;
+    }
+
+    @Override // android.os.Parcelable
+    public void writeToParcel(Parcel parcel, int i10) {
+        parcel.writeStrongBinder(this.iBinder);
+    }
+
+    protected ParcelableIBinder(Parcel parcel) {
+        this.iBinder = parcel.readStrongBinder();
+    }
+}

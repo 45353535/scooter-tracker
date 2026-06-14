@@ -1,0 +1,57 @@
+package com.yandex.mobile.ads;
+
+/* JADX INFO: loaded from: classes12.dex */
+public final class R$id {
+    public static final int adtune_background_view = 2131361905;
+    public static final int adtune_content_container = 2131361907;
+    public static final int adtune_drag_view_container = 2131361908;
+    public static final int adtune_webview_container = 2131361909;
+    public static final int age = 2131361912;
+    public static final int age_divider = 2131361913;
+    public static final int body = 2131362088;
+    public static final int call_to_action = 2131362140;
+    public static final int close = 2131362168;
+    public static final int domain = 2131362288;
+    public static final int dot_indicator = 2131362290;
+    public static final int favicon = 2131362391;
+    public static final int feedback = 2131362394;
+    public static final int icon = 2131362503;
+    public static final int icon_large = 2131362509;
+    public static final int icon_placeholder = 2131362512;
+    public static final int icon_small = 2131362513;
+    public static final int item_ad_unit_format = 2131362778;
+    public static final int item_ad_unit_id = 2131362779;
+    public static final int item_button = 2131362780;
+    public static final int item_divider = 2131362781;
+    public static final int item_info_first = 2131362782;
+    public static final int item_info_second = 2131362784;
+    public static final int item_logo = 2131362785;
+    public static final int item_mediation_adapter = 2131362786;
+    public static final int item_name = 2131362787;
+    public static final int item_subtitle = 2131362788;
+    public static final int item_switch = 2131362789;
+    public static final int item_text = 2131362790;
+    public static final int item_title = 2131362791;
+    public static final int item_warning_button = 2131362793;
+    public static final int left_scroll_control_button = 2131362815;
+    public static final int loading_view = 2131362830;
+    public static final int media = 2131363063;
+    public static final int media_container = 2131363066;
+    public static final int navigation_icon = 2131363164;
+    public static final int price = 2131363285;
+    public static final int rating = 2131363315;
+    public static final int rating_container = 2131363317;
+    public static final int rating_text = 2131363318;
+    public static final int recycler_view = 2131363323;
+    public static final int review_count = 2131363339;
+    public static final int right_scroll_control_button = 2131363345;
+    public static final int sponsored = 2131363454;
+    public static final int title = 2131363550;
+    public static final int toolbar_navigation_button = 2131363560;
+    public static final int toolbar_share_button = 2131363561;
+    public static final int toolbar_title = 2131363562;
+    public static final int video_count_down_control = 2131363611;
+    public static final int video_mute_control = 2131363613;
+    public static final int video_progress_control = 2131363614;
+    public static final int warning = 2131363627;
+}

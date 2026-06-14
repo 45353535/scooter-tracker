@@ -1,0 +1,24 @@
+package com.google.android.material.canvas;
+
+import android.graphics.Canvas;
+import android.graphics.RectF;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+
+/* JADX INFO: loaded from: classes9.dex */
+@RestrictTo({RestrictTo.Scope.LIBRARY_GROUP})
+public class CanvasCompat {
+
+    public interface CanvasOperation {
+        void run(@NonNull Canvas canvas);
+    }
+
+    public static int saveLayerAlpha(@NonNull Canvas canvas, @Nullable RectF rectF, int i10) {
+        return canvas.saveLayerAlpha(rectF, i10);
+    }
+
+    public static int saveLayerAlpha(@NonNull Canvas canvas, float f10, float f11, float f12, float f13, int i10) {
+        return canvas.saveLayerAlpha(f10, f11, f12, f13, i10);
+    }
+}

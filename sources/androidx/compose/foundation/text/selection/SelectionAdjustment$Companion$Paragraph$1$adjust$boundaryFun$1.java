@@ -1,0 +1,25 @@
+package androidx.compose.foundation.text.selection;
+
+import androidx.compose.foundation.text.StringHelpersKt;
+import androidx.compose.ui.text.TextRange;
+import kotlin.Metadata;
+import kotlin.jvm.functions.Function1;
+import kotlin.jvm.internal.y;
+
+/* JADX INFO: loaded from: classes.dex */
+@Metadata(k = 3, mv = {1, 8, 0}, xi = 48)
+/* synthetic */ class SelectionAdjustment$Companion$Paragraph$1$adjust$boundaryFun$1 extends y implements Function1<Integer, TextRange> {
+    SelectionAdjustment$Companion$Paragraph$1$adjust$boundaryFun$1(Object obj) {
+        super(1, obj, StringHelpersKt.class, "getParagraphBoundary", "getParagraphBoundary(Ljava/lang/CharSequence;I)J", 1);
+    }
+
+    @Override // kotlin.jvm.functions.Function1
+    public /* bridge */ /* synthetic */ TextRange invoke(Integer num) {
+        return TextRange.m3491boximpl(m820invokejx7JFs(num.intValue()));
+    }
+
+    /* JADX INFO: renamed from: invoke--jx7JFs, reason: not valid java name */
+    public final long m820invokejx7JFs(int i10) {
+        return StringHelpersKt.getParagraphBoundary((CharSequence) this.receiver, i10);
+    }
+}

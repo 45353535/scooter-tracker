@@ -1,0 +1,44 @@
+package androidx.compose.ui.platform;
+
+import android.view.Choreographer;
+import kotlin.Metadata;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
+import kotlin.jvm.functions.Function2;
+import kotlinx.coroutines.CoroutineScope;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/* JADX INFO: loaded from: classes.dex */
+@Metadata(d1 = {"\u0000\f\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\u0010\u0000\u001a\n \u0002*\u0004\u0018\u00010\u00010\u0001*\u00020\u0003H\u008a@"}, d2 = {"<anonymous>", "Landroid/view/Choreographer;", "kotlin.jvm.PlatformType", "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {1, 8, 0}, xi = 48)
+@kotlin.coroutines.jvm.internal.e(c = "androidx.compose.ui.platform.AndroidUiDispatcher$Companion$Main$2$dispatcher$1", f = "AndroidUiDispatcher.android.kt", l = {}, m = "invokeSuspend")
+final class AndroidUiDispatcher$Companion$Main$2$dispatcher$1 extends kotlin.coroutines.jvm.internal.k implements Function2<CoroutineScope, Continuation, Object> {
+    int label;
+
+    AndroidUiDispatcher$Companion$Main$2$dispatcher$1(Continuation continuation) {
+        super(2, continuation);
+    }
+
+    @Override // kotlin.coroutines.jvm.internal.a
+    @NotNull
+    public final Continuation create(@Nullable Object obj, @NotNull Continuation continuation) {
+        return new AndroidUiDispatcher$Companion$Main$2$dispatcher$1(continuation);
+    }
+
+    @Override // kotlin.coroutines.jvm.internal.a
+    @Nullable
+    public final Object invokeSuspend(@NotNull Object obj) {
+        pf.b.g();
+        if (this.label != 0) {
+            throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+        }
+        kotlin.d.b(obj);
+        return Choreographer.getInstance();
+    }
+
+    @Override // kotlin.jvm.functions.Function2
+    @Nullable
+    public final Object invoke(@NotNull CoroutineScope coroutineScope, @Nullable Continuation continuation) {
+        return ((AndroidUiDispatcher$Companion$Main$2$dispatcher$1) create(coroutineScope, continuation)).invokeSuspend(Unit.f93236a);
+    }
+}

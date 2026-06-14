@@ -1,0 +1,16 @@
+package io.appmetrica.analytics.impl;
+
+import io.appmetrica.analytics.coreapi.internal.backport.Consumer;
+import io.appmetrica.analytics.logger.appmetrica.internal.PublicLogger;
+
+/* JADX INFO: loaded from: classes12.dex */
+public final class Fo implements Consumer {
+
+    /* JADX INFO: renamed from: a, reason: collision with root package name */
+    public final /* synthetic */ String f75801a = "WebView interface setup is successful.";
+
+    @Override // io.appmetrica.analytics.coreapi.internal.backport.Consumer
+    public final void consume(Object obj) {
+        ((PublicLogger) obj).info(this.f75801a, new Object[0]);
+    }
+}

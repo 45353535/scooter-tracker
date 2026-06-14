@@ -1,0 +1,32 @@
+package com.facebook.ads;
+
+import androidx.annotation.Keep;
+import com.facebook.infer.annotation.Nullsafe;
+import j$.util.DesugarCollections;
+import java.util.ArrayList;
+import java.util.List;
+
+/* JADX INFO: loaded from: classes7.dex */
+@Keep
+@Nullsafe(Nullsafe.Mode.LOCAL)
+public class AdSDKNotificationManager {
+    private static final List<AdSDKNotificationListener> sNotificationListeners = DesugarCollections.synchronizedList(new ArrayList());
+
+    public static void addSDKNotificationListener(AdSDKNotificationListener adSDKNotificationListener) {
+        List<AdSDKNotificationListener> list = sNotificationListeners;
+        synchronized (list) {
+            list.add(adSDKNotificationListener);
+        }
+    }
+
+    public static List<AdSDKNotificationListener> getNotificationListeners() {
+        return sNotificationListeners;
+    }
+
+    public static void removeSDKNotificationListener(AdSDKNotificationListener adSDKNotificationListener) {
+        List<AdSDKNotificationListener> list = sNotificationListeners;
+        synchronized (list) {
+            list.remove(adSDKNotificationListener);
+        }
+    }
+}

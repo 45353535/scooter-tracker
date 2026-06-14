@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="landscape_analog_text_size">96dp</dimen>
+    <dimen name="landscape_analog_unit_text_size">32dp</dimen>
+    <dimen name="landscape_info_between_horizontal_margin">56dp</dimen>
+    <dimen name="landscape_map_speed_height">90dp</dimen>
+    <dimen name="landscape_map_speed_text_size">28dp</dimen>
+    <dimen name="landscape_map_speed_unit_text_size">14dp</dimen>
+    <dimen name="landscape_map_speed_width">81dp</dimen>
+    <dimen name="landscape_map_speeding_size">45dp</dimen>
+    <dimen name="landscape_map_speeding_text_size">18dp</dimen>
+    <dimen name="landscape_speeding_image_size">100dp</dimen>
+    <dimen name="landscape_speeding_text_size">40dp</dimen>
+</resources>

@@ -1,0 +1,14 @@
+package com.google.common.base;
+
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
+import com.google.errorprone.annotations.DoNotMock;
+
+/* JADX INFO: loaded from: classes9.dex */
+@GwtIncompatible
+@DoNotMock("Use an instance of one of the Finalizable*Reference classes")
+@J2ktIncompatible
+@ElementTypesAreNonnullByDefault
+public interface FinalizableReference {
+    void finalizeReferent();
+}

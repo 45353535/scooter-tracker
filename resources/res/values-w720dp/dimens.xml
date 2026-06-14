@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="portrait_action_bottom_margin">40dp</dimen>
+    <dimen name="portrait_analog_text_size">90dp</dimen>
+    <dimen name="portrait_analog_unit_text_size">30dp</dimen>
+    <dimen name="portrait_end_guideline">0.875</dimen>
+    <dimen name="portrait_info_between_margin">40dp</dimen>
+    <dimen name="portrait_info_end_guideline">0.9</dimen>
+    <dimen name="portrait_info_start_guideline">0.1</dimen>
+    <dimen name="portrait_map_bottom_margin">40dp</dimen>
+    <dimen name="portrait_map_speed_height">90dp</dimen>
+    <dimen name="portrait_map_speed_text_size">28dp</dimen>
+    <dimen name="portrait_map_speed_unit_text_size">14dp</dimen>
+    <dimen name="portrait_map_speed_width">81dp</dimen>
+    <dimen name="portrait_map_speeding_text_size">18dp</dimen>
+    <dimen name="portrait_speeding_image_size">100dp</dimen>
+    <dimen name="portrait_speeding_text_size">40dp</dimen>
+    <dimen name="portrait_start_guideline">0.125</dimen>
+</resources>

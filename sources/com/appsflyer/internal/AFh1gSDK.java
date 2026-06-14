@@ -1,0 +1,28 @@
+package com.appsflyer.internal;
+
+import androidx.annotation.Nullable;
+
+/* JADX INFO: loaded from: classes6.dex */
+public final class AFh1gSDK extends AFh1jSDK {
+
+    @Nullable
+    public final AFe1mSDK toString;
+
+    @Deprecated
+    public AFh1gSDK() {
+        this.toString = null;
+    }
+
+    @Override // com.appsflyer.internal.AFh1jSDK
+    public final AFe1mSDK getCurrencyIso4217Code() {
+        AFe1mSDK aFe1mSDK = this.toString;
+        return aFe1mSDK != null ? aFe1mSDK : AFe1mSDK.CACHED_EVENT;
+    }
+
+    public AFh1gSDK(String str, byte[] bArr, String str2, @Nullable AFe1mSDK aFe1mSDK) {
+        super(null, str, Boolean.FALSE);
+        this.getRevenue = str2;
+        getMonetizationNetwork(bArr);
+        this.toString = aFe1mSDK;
+    }
+}

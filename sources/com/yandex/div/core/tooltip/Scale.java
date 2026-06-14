@@ -1,0 +1,36 @@
+package com.yandex.div.core.tooltip;
+
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
+import android.transition.TransitionValues;
+import android.transition.Visibility;
+import android.util.Property;
+import android.view.View;
+import android.view.ViewGroup;
+import com.mbridge.msdk.MBridgeConstans;
+import kotlin.Metadata;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/* JADX INFO: loaded from: classes11.dex */
+@Metadata(d1 = {"\u0000,\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0007\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\b\u0002\u0018\u00002\u00020\u0001B\r\u0012\u0006\u0010\u0002\u001a\u00020\u0003¢\u0006\u0002\u0010\u0004J*\u0010\u0005\u001a\u00020\u00062\b\u0010\u0007\u001a\u0004\u0018\u00010\b2\u0006\u0010\t\u001a\u00020\n2\u0006\u0010\u000b\u001a\u00020\f2\u0006\u0010\r\u001a\u00020\fH\u0016J*\u0010\u000e\u001a\u00020\u00062\b\u0010\u0007\u001a\u0004\u0018\u00010\b2\u0006\u0010\t\u001a\u00020\n2\u0006\u0010\u000b\u001a\u00020\f2\u0006\u0010\r\u001a\u00020\fH\u0016R\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000¨\u0006\u000f"}, d2 = {"Lcom/yandex/div/core/tooltip/Scale;", "Landroid/transition/Visibility;", "scaleFactor", "", "(F)V", "onAppear", "Landroid/animation/Animator;", "sceneRoot", "Landroid/view/ViewGroup;", MBridgeConstans.DYNAMIC_VIEW_KEY_VIEW, "Landroid/view/View;", "startValues", "Landroid/transition/TransitionValues;", "endValues", "onDisappear", "div_release"}, k = 1, mv = {1, 8, 0}, xi = 48)
+final class Scale extends Visibility {
+    private final float scaleFactor;
+
+    public Scale(float f10) {
+        this.scaleFactor = f10;
+    }
+
+    @Override // android.transition.Visibility
+    @NotNull
+    public Animator onAppear(@Nullable ViewGroup sceneRoot, @NotNull View view, @NotNull TransitionValues startValues, @NotNull TransitionValues endValues) {
+        return ObjectAnimator.ofPropertyValuesHolder(view, PropertyValuesHolder.ofFloat((Property<?, Float>) View.SCALE_X, this.scaleFactor, view.getScaleX()), PropertyValuesHolder.ofFloat((Property<?, Float>) View.SCALE_Y, this.scaleFactor, view.getScaleY()));
+    }
+
+    @Override // android.transition.Visibility
+    @NotNull
+    public Animator onDisappear(@Nullable ViewGroup sceneRoot, @NotNull View view, @NotNull TransitionValues startValues, @NotNull TransitionValues endValues) {
+        return ObjectAnimator.ofPropertyValuesHolder(view, PropertyValuesHolder.ofFloat((Property<?, Float>) View.SCALE_X, view.getScaleX(), this.scaleFactor), PropertyValuesHolder.ofFloat((Property<?, Float>) View.SCALE_Y, view.getScaleY(), this.scaleFactor));
+    }
+}
