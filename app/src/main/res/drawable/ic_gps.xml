@@ -3,50 +3,38 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Satellite body -->
+    <!-- Signal wave left outer -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M5,13L5,9L19,9L19,13Z" />
-    <!-- Left panel -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M2,10L5,10L5,12L2,12Z" />
-    <!-- Right panel -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M19,10L22,10L22,12L19,12Z" />
-    <!-- Antenna -->
-    <path
-        android:pathData="M12,4L12,9"
+        android:pathData="M4,8C2,11 2,14 4,17"
         android:strokeWidth="2"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
         android:strokeLineCap="round" />
-    <!-- Signal bar left -->
+    <!-- Signal wave left inner -->
     <path
-        android:pathData="M8,5L8,7"
-        android:strokeWidth="2"
-        android:strokeColor="#FFFFFF"
-        android:fillColor="@android:color/transparent"
-        android:strokeLineCap="round" />
-    <!-- Signal bar far left -->
-    <path
-        android:pathData="M5,6L5,8"
+        android:pathData="M7,6C5.5,8.5 5.5,11.5 7,14"
         android:strokeWidth="1.5"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
         android:strokeLineCap="round" />
-    <!-- Signal bar right -->
+    <!-- Signal wave right inner -->
     <path
-        android:pathData="M16,5L16,7"
+        android:pathData="M17,6C18.5,8.5 18.5,11.5 17,14"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round" />
+    <!-- Signal wave right outer -->
+    <path
+        android:pathData="M20,8C22,11 22,14 20,17"
         android:strokeWidth="2"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
         android:strokeLineCap="round" />
-    <!-- Signal bar far right -->
+    <!-- Satellite dish arc -->
     <path
-        android:pathData="M19,6L19,8"
-        android:strokeWidth="1.5"
+        android:pathData="M2,19C6,8 18,8 22,19"
+        android:strokeWidth="3"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
         android:strokeLineCap="round" />
