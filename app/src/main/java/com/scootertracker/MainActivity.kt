@@ -192,7 +192,7 @@ fun MainScreen(
             Spacer(modifier = Modifier.height(52.dp))
 
             Text(
-                "Scooter Tracker",
+                "Wenbox U2",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Normal,
                 color = TextWhite,
