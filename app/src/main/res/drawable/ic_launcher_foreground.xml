@@ -4,46 +4,16 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Rear wheel -->
+    <!-- Stylized W letter (Wenbox) -->
     <path
-        android:fillColor="#00D2FF"
-        android:pathData="M30,82m-9,0a9,9 0 1,0 18,0a9,9 0 1,0 -18,0" />
-    <!-- Front wheel -->
-    <path
-        android:fillColor="#00D2FF"
-        android:pathData="M76,82m-9,0a9,9 0 1,0 18,0a9,9 0 1,0 -18,0" />
-    <!-- Front shield (body panel) -->
-    <path
-        android:pathData="M76,64C84,52 84,36 74,28C66,22 56,24 50,30L46,30L44,38C44,46 46,54 48,64Z"
-        android:strokeWidth="0"
-        android:fillColor="#FFFFFF" />
-    <!-- Floorboard -->
-    <path
-        android:pathData="M38,64L74,64"
-        android:strokeWidth="4"
-        android:strokeColor="#FFFFFF"
-        android:fillColor="@android:color/transparent"
-        android:strokeLineCap="round" />
-    <!-- Seat post -->
-    <path
-        android:pathData="M34,64L34,50"
-        android:strokeWidth="3.5"
-        android:strokeColor="#FFFFFF"
-        android:fillColor="@android:color/transparent"
-        android:strokeLineCap="round" />
-    <!-- Seat -->
-    <path
-        android:pathData="M24,50L46,50"
-        android:strokeWidth="4"
-        android:strokeColor="#FFFFFF"
-        android:fillColor="@android:color/transparent"
-        android:strokeLineCap="round" />
-    <!-- Under-seat body panel -->
-    <path
-        android:pathData="M34,50L34,64L46,64L46,50"
-        android:strokeWidth="3"
+        android:pathData="M24,32L38,72L54,44L70,72L84,32"
+        android:strokeWidth="6"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
+    <!-- Speed dot accent (cyan) -->
+    <path
+        android:pathData="M72,76m-5,0a5,5 0 1,0 10,0a5,5 0 1,0 -10,0"
+        android:fillColor="#00D2FF" />
 </vector>
