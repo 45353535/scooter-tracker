@@ -3,7 +3,51 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- Satellite body -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10Z"/>
+        android:pathData="M5,13L5,9L19,9L19,13Z" />
+    <!-- Left panel -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M2,10L5,10L5,12L2,12Z" />
+    <!-- Right panel -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M19,10L22,10L22,12L19,12Z" />
+    <!-- Antenna -->
+    <path
+        android:pathData="M12,4L12,9"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round" />
+    <!-- Signal bar left -->
+    <path
+        android:pathData="M8,5L8,7"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round" />
+    <!-- Signal bar far left -->
+    <path
+        android:pathData="M5,6L5,8"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round" />
+    <!-- Signal bar right -->
+    <path
+        android:pathData="M16,5L16,7"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round" />
+    <!-- Signal bar far right -->
+    <path
+        android:pathData="M19,6L19,8"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineCap="round" />
 </vector>
