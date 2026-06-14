@@ -3,37 +3,23 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Signal wave left outer -->
+    <!-- Bar 1 (lowest) -->
     <path
-        android:pathData="M4,8C2,11 2,14 4,17"
-        android:strokeWidth="2"
+        android:pathData="M5,16L5,20"
+        android:strokeWidth="3"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
         android:strokeLineCap="round" />
-    <!-- Signal wave left inner -->
+    <!-- Bar 2 (middle) -->
     <path
-        android:pathData="M7,6C5.5,8.5 5.5,11.5 7,14"
-        android:strokeWidth="1.5"
+        android:pathData="M12,12L12,20"
+        android:strokeWidth="3"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
         android:strokeLineCap="round" />
-    <!-- Signal wave right inner -->
+    <!-- Bar 3 (tallest) -->
     <path
-        android:pathData="M17,6C18.5,8.5 18.5,11.5 17,14"
-        android:strokeWidth="1.5"
-        android:strokeColor="#FFFFFF"
-        android:fillColor="@android:color/transparent"
-        android:strokeLineCap="round" />
-    <!-- Signal wave right outer -->
-    <path
-        android:pathData="M20,8C22,11 22,14 20,17"
-        android:strokeWidth="2"
-        android:strokeColor="#FFFFFF"
-        android:fillColor="@android:color/transparent"
-        android:strokeLineCap="round" />
-    <!-- Satellite dish arc -->
-    <path
-        android:pathData="M2,19C6,8 18,8 22,19"
+        android:pathData="M19,8L19,20"
         android:strokeWidth="3"
         android:strokeColor="#FFFFFF"
         android:fillColor="@android:color/transparent"
