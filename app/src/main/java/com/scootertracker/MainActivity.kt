@@ -243,12 +243,12 @@ fun MainScreen(
                     painter = painterResource(com.scootertracker.R.drawable.ic_gps),
                     contentDescription = null,
                     tint = gpsTint,
-                    modifier = Modifier.size(14.dp)
+                    modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         "$satelliteCount спутников",
-                        fontSize = 12.sp,
+                        fontSize = 16.sp,
                         color = gpsTint
                     )
             }
