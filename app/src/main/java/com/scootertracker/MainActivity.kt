@@ -340,7 +340,7 @@ fun MainScreen(
                 )
             ) {
                 Text(
-                    if (isTracking) "Остановить" else "Начать трекинг",
+                    if (isTracking) "STOP" else "START",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
